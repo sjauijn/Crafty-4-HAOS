@@ -1,0 +1,277 @@
+<ul class="navbar-nav ml-auto">
+  <li class="nav-item dropdown notif-li">
+    <a class="nav-link count-indicator dropdown-toggle" id="notifDropdown" href="#" aria-expanded="false">
+      <i class="ph-fill ph-cell-tower
+        {% if data.get('update_available') %}
+            text-danger
+        {% end %}
+        "></i><span id="notif-count" class="badge badge-notify"></span> </a>
+    <div class="p-0 dropdown-menu dropdown-menu-right navbar-dropdown notif-div vw-40 max-vh-80"
+      aria-labelledby="notifDropdown">
+      <ul class="p-3" id="announcements">
+      </ul>
+    </div>
+  </li>
+
+  <li class="nav-item dropdown user-dropdown">
+    <a class="nav-link dropdown-toggle" id="UserDropdown" href="#" data-toggle="dropdown" aria-expanded="false">
+      <img class="img-xs rounded-circle profile-picture" onerror="pfpError(this)" src="{{ data['user_data']['pfp'] }}"
+        alt="Profile"><span class="badge mfa-warn-badge d-none mfa-warn"><i
+          class="ph-bold ph-warning text-warning"></i></span> </a>
+    <div class="dropdown-menu dropdown-menu-right navbar-dropdown" aria-labelledby="UserDropdown">
+      <div class="dropdown-header text-center">
+        <img class="img-md rounded-circle profile-picture" onerror="pfpError(this)" src="{{ data['user_data']['pfp'] }}"
+          alt="Profile">
+        <p class="mb-1 mt-3 font-weight-semibold">{{ data['user_data']['username'] }}</p>
+        <p class="font-weight-light text-muted mb-0">Roles: </p>
+        {% for r in data['user_role'] %}
+        <p class="font-weight-light text-muted mb-0">{{ r }}</p>
+        {% end %}
+        {% if data.get('api_key') %}
+        <p class="mt-3">Logged in as API key "{{ data['api_key']['name'] }}"</p>
+        {% end %}
+        <p class="font-weight-light text-muted mb-0">Email: {{ data['user_data']['email'] }}</p>
+      </div>
+      <div id="mfa-container" class="d-none mfa-warn-text mfa-warn card-header header-sm justify-content-center">
+        <a id="mfa-link" class="small mfa-dark" href="/panel/edit_user_otp?id={{data['user_data']['user_id']}}"
+          target="_blank"><i class="ph-fill ph-warning"></i>{{translate("base",
+          "getMFA", data['lang'])}}
+        </a>
+      </div>
+      <br />
+      <a class="dropdown-item" href="/panel/edit_user?id={{data['user_data']['user_id']}}"><i
+          class="ph-bold ph-gear dropdown-item-icon text-primary"></i>{{
+        translate('notify', 'accountSettings',
+        data['lang']) }}</a>
+      {% if data['support_perm'] %}
+      {% if data['user_data']['preparing'] %}
+      <span class="dropdown-item" id="support_progress"><i
+          class="dropdown-item-icon mdi mdi-download-outline text-primary"></i>{{ translate('notify', 'supportLogs',
+        data['lang']) }}<br><br></span>
+      <span class="dropdown-item" id="support_progress">
+        <div class="support_progress">
+          <progress class="progress-bar progress-bar-striped progress-bar-animated" id="logs_progress_bar"
+            style="width:0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</progress>
+        </div>
+      </span>
+      {% else %}
+      <a class="dropdown-item  support_logs" id="support_logs"><i
+          class="dropdown-item-icon mdi mdi-download-outline text-primary"></i>{{ translate('notify', 'supportLogs',
+        data['lang']) }}</i></a>
+      {% end %}
+      {% end %}
+      {% if data['superuser'] %}
+      <a class="dropdown-item" href="{{ handler.build_url('/panel/activity_logs') }}"><i
+          class="dropdown-item-icon mdi mdi-calendar-check-outline text-primary"></i>{{
+        translate('notify',
+        'activityLog', data['lang']) }}</a>
+      {% end %}
+      <a class="dropdown-item" href="{{ handler.build_url('/logout') }}"><i class="dropdown-item-icon mdi mdi-power text-primary"></i>{{
+        translate('notify', 'logout', data['lang']) }}</a>
+    </div>
+  </li>
+</ul>
+<style>
+  .badge-notify {
+    background: var(--purple);
+    color: var(--dark);
+    position: absolute;
+    -moz-transform: translate(-70%, -70%);
+    /* For Firefox */
+    -ms-transform: translate(-70%, -70%);
+    /* for IE */
+    -webkit-transform: translate(-70%, -70%);
+    /* For Safari, Chrome, iOS */
+    -o-transform: translate(-70%, -70%);
+  }
+
+  .clear-button:hover {
+    cursor: pointer;
+  }
+
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  .notif-div::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Hide scrollbar for IE, Edge and Firefox */
+  .notif-div {
+    -ms-overflow-style: none;
+    /* IE and Edge */
+    scrollbar-width: none;
+    /* Firefox */
+  }
+</style>
+<script>
+  function pfpError(image) {
+    image.onerror = "";
+    image.src = "/static/assets/images/faces-clipart/pic-3.png";
+    return true;
+  }
+
+
+  function createAnnouncementItem(value) {
+    const li = document.createElement("li");
+    li.className = "card-header header-sm justify-content-between align-items-center annoucement-item";
+    li.id = value.id;
+
+    // Clear button
+    const iconWrapper = document.createElement("p");
+    const icon = document.createElement("i");
+    icon.className = "clear-button ph ph-x";
+    icon.dataset.id = value.id;
+    iconWrapper.appendChild(icon);
+
+    // Link section
+    const a = document.createElement("a");
+    a.href = value.link;
+    a.target = "_blank";
+
+    const title = document.createElement("h6");
+    title.className = "annoucement-title";
+    title.textContent = value.title;
+
+    const dateWrapper = document.createElement("small");
+    const date = document.createElement("p");
+    date.textContent = value.date;
+    dateWrapper.appendChild(date);
+
+    const desc = document.createElement("p");
+    desc.textContent = value.desc;
+
+    // Assemble link
+    a.appendChild(title);
+    a.appendChild(dateWrapper);
+    a.appendChild(desc);
+
+    // Assemble list item
+    li.appendChild(iconWrapper);
+    li.appendChild(a);
+
+    return li;
+  }
+
+  function updateAnnouncements(data) {
+    console.log(data);
+    const container = document.querySelector("#announcements");
+    for (let value of data) {
+      let annc_item = createAnnouncementItem(value)
+      container.appendChild(annc_item);
+    }
+    if (data.length > 0) {
+      localStorage.setItem("notif-count", data.length);
+      $("#notif-count").show()
+      $("#notif-count").text(data.length).html();
+    } else {
+      $("#announcements").text(`<li><p class='my-3 text-center'><i class="ph-fill ph-bell-slash" aria-hidden="true"></i></p></li>`).html();
+      $("#notif-count").hide()
+    }
+    $(".clear-button").on("click", function (event) {
+      console.log("CLEAR BUTTON")
+      event.stopPropagation();
+      let uuid = event.target.getAttribute("data-id");
+      $(`#${uuid}`).remove();
+      send_clear(uuid);
+      let notif_count = localStorage.getItem("notif-count") - 1;
+      if (notif_count > 0) {
+        localStorage.setItem("notif-count", notif_count);
+        $("#notif-count").text(notif_count).html();
+      } else {
+        $("#announcements").html(`<li><p class='my-3 text-center'><i class="ph-fill ph-bell-slash" aria-hidden="true"></i></p></li>`)
+        $("#notif-count").html("");
+      }
+
+    });
+  }
+  async function getAnnouncements() {
+    var token = getCookie("_xsrf");
+    let res = await fetch(`/api/v2/crafty/announcements/`, {
+      method: 'GET',
+      headers: {
+        'X-XSRFToken': token
+      },
+    });
+    let responseData = await res.json();
+    console.log(responseData);
+    setTimeout(function () {
+      getAnnouncements();
+    }, 1800000); //Wait 30 minutes in miliseconds
+    console.log("Registered annoucement fetch event in 30 minutes.")
+    if (responseData.status === "ok") {
+      updateAnnouncements(responseData.data)
+    } else {
+      updateAnnouncements([])
+    }
+  }
+  async function send_clear(uuid) {
+    var token = getCookie("_xsrf");
+    let body = JSON.stringify({ "id": uuid });
+    console.log(body)
+    let res = await fetch(`/api/v2/crafty/announcements/`, {
+      method: 'POST',
+      headers: {
+        'X-XSRFToken': token,
+      },
+      body: body,
+    });
+    let responseData = await res.json();
+    console.log(responseData);
+    if (responseData.status === "ok") {
+      return
+    } else {
+      bootbox.alert(responseData.error_data)
+    }
+  }
+
+  $(".support_logs").click(async function () {
+    window.open(`/api/v2/crafty/support_logs`, '_blank');
+  })
+
+  /* Open / Close with Button */
+  $('li.dropdown.notif-li a').on('click', function (event) {
+    $(this).parent().toggleClass("show");
+    $('div.notif-div').toggleClass("show");
+    if ($('li.dropdown.notif-li a').attr('aria-expanded') === 'false') {
+      $('li.dropdown.notif-li a').attr('aria-expanded', "true");
+    }
+    else {
+      $('li.dropdown.notif-li a').attr('aria-expanded', "false");
+    }
+  });
+
+  /* Close when clicking ouside */
+  $('body').on('click', function (e) {
+    if (!$('li.dropdown.notif-li').is(e.target) && $('li.dropdown.notif-li').has(e.target).length === 0 && $('show').has(e.target).length === 0) {
+      $('li.notif-li').removeClass("show");
+      $('li.dropdown.notif-li a').attr('aria-expanded', "false");
+      $('div.notif-div').removeClass("show");
+    }
+  });
+
+  $(document).ready(function () {
+    getAnnouncements();
+    const bg = getComputedStyle(document.documentElement)
+      .getPropertyValue("--dropdown-bg")
+      .trim();
+    if (isLight(bg)) {
+      $("#mfa-link").addClass("mfa-light");
+      $("#mfa-link").removeClass("mfa-dark");
+    }
+  })
+
+  function isLight(color) {
+    let hex = color.replace("#", "");
+
+    // Expand shorthand (#abc → #aabbcc)
+    if (hex.length === 3) {
+      hex = hex.split("").map(c => c + c).join("");
+    }
+
+    const r = Number.parseInt(hex.substring(0, 2), 16);
+    const g = Number.parseInt(hex.substring(2, 4), 16);
+    const b = Number.parseInt(hex.substring(4, 6), 16);
+
+    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    return luminance > 0.6;
+  }
+</script>

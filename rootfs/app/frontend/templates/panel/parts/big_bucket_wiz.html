@@ -1,0 +1,178 @@
+<div class="col-sm-12">
+    <div class="form-group">
+        <label for="server_jar">{{ translate('serverWizard', 'serverType', data['lang']) }}</label>
+        <div class="input-group">
+            <select required class="form-control form-control-lg select-css" id="server_jar" name="type"
+                onchange="serverJarChange(this)">
+                <option value="">{{ translate('serverWizard', 'selectServer', data['lang']) }}</option>
+                {% for s in data['server_types'] %}
+                {% if data['server_types'][s].get("enabled", False) %}
+                <option value="{{ s }}">{{ data["server_types"][s].get("friendly_name", s).capitalize() }}
+                    {% end %}
+                </option>
+                {% end %}
+            </select>
+            {% if data['super_user'] %}
+            <div class="input-group-append">
+                <button class="btn custom-picker" type="button" onclick="refreshCache()"><i id="refresh-cache"
+                        class="refresh-class ph ph-arrows-clockwise"></i></button>
+            </div>
+            {% end %}
+        </div>
+    </div>
+</div>
+
+<div class="col-sm-12">
+    <div class="form-group">
+        <label for="server_type">{{ translate('serverWizard', 'serverSelect', data['lang']) }}</label>
+        <select required class="form-control form-control-lg select-css" id="server_type" name="type"
+            onchange="serverTypeChange(this)">
+            <option value="">{{ translate('serverWizard', 'selectServer', data['lang']) }}</option>
+        </select>
+    </div>
+</div>
+
+<div class="col-sm-12">
+    <div class="form-group">
+        <label for="server_version">{{ translate('serverWizard', 'serverVersion', data['lang']) }}</label>
+        <select required class="form-control form-control-lg select-css" id="server" name="version">
+            <option value="">{{ translate('serverWizard', 'selectVersion', data['lang']) }}</option>
+        </select>
+    </div>
+</div>
+<span data-html="true" class="version-hint text-center"
+    data-content="⚠️ {{ translate('serverWizard', 'unsupported', data['lang']) }} ⚠️" , data-placement="right"></span>
+
+<script type="text/javascript">
+    const text = '{% raw data["js_server_types"] %}';
+    const serverTypesLists = JSON.parse(text);
+    /* CountryChange() is called from the onchange event of a select element.
+    * param selectObj - the select object which fired the on change event.
+    */
+    function serverTypeChange(selectObj) {
+        // get the index of the selected option
+        let idx = document.getElementById('server_type').value;
+        let idx_list = idx.split("|");
+        // get the value of the selected option
+        let cSelect = document.getElementById("server");
+        let versions = [];
+        try {
+            versions = Object.keys(serverTypesLists[idx_list[0]]["types"][idx_list[1]]["versions"]);
+        } catch {
+            while (cSelect.options.length > 0) {
+                cSelect.remove(0);
+            }
+            return;
+        }
+
+        $("#server option").each(function () {
+            $(this).remove()
+        })
+
+        // create new options ordered by ascending
+        versions.forEach(type => {
+            let newOption = document.createElement("option");
+            newOption.value = idx + "|" + type;  // assumes option string and value are the same
+            newOption.text = type;
+            // add the new option
+            try {
+                cSelect.add(newOption);  // this will fail in DOM browsers but is needed for IE
+            }
+            catch (e) {
+                console.log(`Failed on DOM: ${e}`);
+                cSelect.appendChild(newOption);
+            }
+        })
+    }
+
+    $("#server").change(function () {
+        let selected_version = $("#server :selected").text().split(".");
+        if (Number(selected_version[0]) === 1 && Number(selected_version[1]) < 8) {
+            $('[data-toggle="popover"]').popover();
+            if ($(globalThis).width() < 1000) {
+                $('.version-hint').attr("data-placement", "top")
+            } else {
+                $('.version-hint').attr("data-placement", "right")
+            }
+            $('.version-hint').popover("show");
+        } else {
+            $('.version-hint').popover("hide");
+        }
+    });
+
+    function serverJarChange(selectObj) {
+        const type_select = document.getElementById('server_jar')
+        const tidx = type_select.selectedIndex;
+        const val = type_select.options[tidx].value;
+        if (!val) {
+            $("#server_type option").each(function () {
+                $(this).remove()
+            })
+            $("#server option").each(function () {
+                $(this).remove()
+            })
+            return;
+        }
+        let jcSelect = {};
+        if (val == 'None') {
+            jcSelect = document.getElementById("server_type");
+            while (jcSelect.options.length > 0) {
+                jcSelect.remove(0);
+            }
+            serverTypeChange(selectObj);
+            return;
+        }
+        // get the index of the selected option
+        let jidx = selectObj.selectedIndex;
+        // get the value of the selected option
+        let jwhich = selectObj.options[jidx].value;
+        // use the selected option value to retrieve the list of items from the serverTypesLists array
+        let jcList = Object.keys(serverTypesLists[jwhich]["types"]);
+        // get the country select element via its known id
+        jcSelect = document.getElementById("server_type");
+        // remove the current options from the country select
+        while (jcSelect.options.length > 0) {
+            jcSelect.remove(0);
+        }
+        let jnewOption;
+        // create new options ordered by ascending
+        jcList.forEach(type => {
+            jnewOption = document.createElement("option");
+            jnewOption.value = jwhich + "|" + type;  // assumes option string and value are the same
+            jnewOption.text = type;
+            // add the new option
+            try {
+                jcSelect.add(jnewOption);  // this will fail in DOM browsers but is needed for IE
+            }
+            catch (e) {
+                jcSelect.appendChild(jnewOption);
+            }
+        })
+        serverTypeChange(selectObj);
+    }
+    async function refreshCache() {
+        document.getElementById("refresh-cache").classList.add("ph-spin")
+        let token = getCookie("_xsrf")
+        let res = await fetch(`/api/v2/crafty/JarCache`, {
+            method: 'GET',
+            headers: {
+                'X-XSRFToken': token
+            },
+        });
+        let responseData = await res.json();
+        if (responseData.status === "ok") {
+            document.getElementById("refresh-cache").classList.remove("ph-arrows-clockwise");
+            document.getElementById("refresh-cache").classList.remove("ph-spin");
+            document.getElementById("refresh-cache").classList.add("ph-check-fat");
+            setTimeout(() => {
+                location.reload();
+            }, 2000);
+        } else {
+
+            bootbox.alert({
+                title: responseData.error,
+                message: responseData.error_data
+            });
+        }
+    }
+</script>

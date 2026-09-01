@@ -1,0 +1,38 @@
+#editor_container {
+    width: 100%;
+}
+
+#editor {
+    height: 75vh;
+    border-radius: 25px;
+}
+
+.content-wrapper {
+    width: 100vw;
+}
+
+#saveButton {
+    width: 50%;
+}
+
+.centered {
+    justify-content: center;
+}
+
+.info-flex {
+    margin-right: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+}
+
+#file-info {
+    background-color: var(--ram-bg);
+    border-radius: 15px;
+    padding: 15px;
+}
+
+.page-title-header {
+    margin-bottom: 5px !important;
+}

@@ -1,0 +1,779 @@
+{% extends ../base.html %}
+
+{% block meta %}
+{% end %}
+
+{% block title %}Crafty Controller - {{ translate('serverDetails', 'serverDetails', data['lang']) }}{% end %}
+
+{% block content %}
+
+<div class="content-wrapper">
+
+  <!-- Page Title Header Starts-->
+  <div class="row page-title-header">
+    <div class="col-12">
+      <div class="page-header">
+        <h4 class="page-title">
+          {{ translate('serverDetails', 'serverDetails', data['lang']) }} - {{
+          data['server_stats']['server_id']['server_name'] }}
+          <br />
+          <small>UUID: {{ data['server_stats']['server_id']['server_id'] }}</small>
+        </h4>
+      </div>
+    </div>
+
+  </div>
+  <!-- Page Title Header Ends-->
+
+  {% include "parts/details_stats.html %}
+
+  <div class="row">
+
+    <div class="col-sm-12 grid-margin">
+      <div class="card">
+        <div class="card-body  pt-0">
+
+          <span class="d-none d-sm-block">
+            {% include "parts/server_controls_list.html %}
+          </span>
+          <span class="d-block d-sm-none">
+            {% include "parts/m_server_controls_list.html %}
+          </span>
+          <div class="row">
+            <div class="col-md-6 col-sm-12 parent">
+              {% if data["backup_config"].get("backup_type") != "snapshot" %}
+              <span id="beta-ribbon" class="d-none">
+                {% else %}
+                <span id="beta-ribbon"></span>
+                {% end %}
+                <h4 class="ribbon">BETA</h4>
+              </span>
+              <br>
+              <br>
+              <div id="{{data['backup_config'].get('backup_id', None)}}_status" class="progress"
+                style="height: 15px; display: none;">
+              </div>
+              {% if data['backing_up'] %}
+              <p>Backing up <i class="ph ph-spinner-gap ph-spin"></i> <span
+                  id="total_files">{{data['server_stats']['world_size']}}</span></p>
+              {% end %}
+
+              <br>
+              {% if not data['backing_up'] %}
+              <div id="backup_button" class="form-group">
+                <button class="btn btn-primary" id="backup_now_button">{{ translate('serverBackups', 'backupNow',
+                  data['lang']) }}</button>
+              </div>
+              {% end %}
+              <form id="backup-form" class="forms-sample">
+                {% if not data["backup_config"].get("backup_id", None) %}
+                <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                  <label class="btn btn-secondary active">
+                    <input type="radio" class="btn-check" name="backup_type" id="zip_vault" value="zip_vault"
+                      autocomplete="off" checked> Full Zip Vault
+                  </label>
+                  <label class="btn btn-secondary">
+                    <input type="radio" class="btn-check" name="backup_type" id="snapshot" value="snapshot"
+                      data-disclaimer="{{ translate('serverBackups', 'snapshotDisclaimer', data['lang']) }}"
+                      autocomplete="off"> Snapshot
+                  </label>
+                </div>
+                <br>
+                <br>
+                {% end %}
+                <div class="form-group">
+                  <label for="backup_name">{{ translate('serverBackups', 'name', data['lang']) }}
+                    {% if data["backup_config"].get("default", None) %}
+                    &nbsp;&nbsp; <span class="badge-pill badge-outline-warning">{{ translate('serverBackups', 'default',
+                      data['lang']) }}</span><small><button class="backup-explain transparent-button"
+                        data-explain="{{ translate('serverBackups', 'defaultExplain', data['lang'])}}"><i
+                          class="ph-duotone ph-question text-secondary"></i></button></small>
+                    {% end %}
+                  </label>
+                  {% if data["backup_config"].get("backup_id", None) %}
+                  <input type="text" class="form-control" name="backup_name" id="backup_name"
+                    value="{{ data['backup_config']['backup_name']  }}">
+                  {% else %}
+                  <input type="text" class="form-control" name="backup_name" id="backup_name"
+                    placeholder="{{ translate('serverBackups', 'myBackup', data['lang']) }}">
+                  <br>
+                  <br>
+                  {% end %}
+                  {% if data['super_user'] %}
+                  <label for="server_name">{{ translate('serverBackups', 'storageLocation', data['lang']) }} <small
+                      class="text-muted ml-1"> - {{ translate('serverBackups', 'storageLocationDesc', data['lang'])
+                      }}</small> </label>
+                  <input type="text" class="form-control" name="backup_location" id="backup_location"
+                    value="{{ data['backup_config']['backup_location']  }}"
+                    placeholder="{{ translate('serverBackups', 'storageLocation', data['lang']) }}">
+                  {% end %}
+                </div>
+
+                <div class="form-group">
+                  <label for="server_path">{{ translate('serverBackups', 'maxBackups', data['lang']) }} <small
+                      class="text-muted ml-1"> - {{ translate('serverBackups', 'maxBackupsDesc', data['lang'])
+                      }}</small> </label>
+                  <input type="text" class="form-control" name="max_backups" id="max_backups"
+                    value="{{ data['backup_config']['max_backups']  }}"
+                    placeholder="{{ translate('serverBackups', 'maxBackups', data['lang']) }}">
+                </div>
+                <div class="form-group">
+                  <div class="custom-control custom-switch">
+                    {% if data['backup_config']['compress'] %}
+                    <input type="checkbox" class="custom-control-input" id="compress" name="compress" checked=""
+                      value="True">
+                    {% else %}
+                    <input type="checkbox" class="custom-control-input" id="compress" name="compress" value="True">
+                    {% end %}
+                    <label for="compress" class="custom-control-label">{{ translate('serverBackups', 'compress',
+                      data['lang']) }}</label>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <div class="custom-control custom-switch">
+                    {% if data['backup_config']['shutdown']%}
+                    <input type="checkbox" class="custom-control-input" id="shutdown" name="shutdown" checked=""
+                      value="True">
+                    {% else %}
+                    <input type="checkbox" class="custom-control-input" id="shutdown" name="shutdown" value="True">
+                    {% end %}
+                    <label for="shutdown" class="custom-control-label">{{ translate('serverBackups', 'shutdown',
+                      data['lang']) }}</label>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <div class="custom-control custom-switch">
+                    {% if data['backup_config']['before'] %}
+                    <input type="checkbox" class="custom-control-input" id="before-check" name="before-check" checked>
+                    <input type="text" class="form-control hidden-input d-inline-block" name="before" id="backup_before"
+                      value="{{ data['backup_config']['before'] }}" placeholder="We enter the / for you">
+                    {% else %}
+                    <input type="checkbox" class="custom-control-input" id="before-check" name="before-check">
+                    <input type="text" class="form-control hidden-input" name="before" id="backup_before" value=""
+                      placeholder="We enter the / for you." style="display: none;">
+                    {% end %}
+                    <label for="before-check" class="custom-control-label">{{
+                      translate('serverBackups', 'before', data['lang']) }}</label>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <div class="custom-control custom-switch">
+                    {% if data['backup_config']['after'] %}
+                    <input type="checkbox" class="custom-control-input" id="after-check" name="after-check" checked>
+                    <input type="text" class="form-control hidden-input d-inline-block" name="after" id="backup_after"
+                      value="{{ data['backup_config']['after'] }}" placeholder="We enter the / for you">
+                    <br>
+                    {% else %}
+                    <input type="checkbox" class="custom-control-input" id="after-check" name="after-check">
+                    <input type="text" class="form-control hidden-input" name="after" id="backup_after" value=""
+                      placeholder="We enter the / for you." style="display: none;">
+                    {% end %}
+                    <label for="after-check" class="custom-control-label">{{
+                      translate('serverBackups', 'after', data['lang']) }}</label>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="server">{{ translate('serverBackups', 'exclusionsTitle', data['lang']) }} <small> - {{
+                      translate('serverBackups', 'excludedChoose', data['lang']) }}</small></label>
+                  <br>
+                  <button class="btn btn-primary mr-2" id="root_files_button"
+                    data-server_path="{{ data['server_stats']['server_id']['path']}}" type="button">{{
+                    translate('serverBackups', 'clickExclude', data['lang']) }}</button>
+                </div>
+                <div class="modal fade" id="dir_select" tabindex="-1" aria-labelledby="dir_select" aria-hidden="true">
+                  <div class="modal-dialog">
+                    <div class="modal-content">
+                      <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLongTitle">{{ translate('serverBackups',
+                          'excludedChoose', data['lang']) }}</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                          <span aria-hidden="true">&times;</span>
+                        </button>
+                      </div>
+                      <div class="modal-body">
+                        <div class="tree-ctx-item overflow-scroll mh-75" id="main-tree-div" data-path="">
+                          <input type="checkbox" id="main-tree-input" name="root_path" value="" disabled>
+                          <span id="main-tree" class="files-tree-title tree-caret-down root-dir" data-path="">
+                            <i class="ph-fill ph-folder"></i>
+                            <i class="ph-fill ph-folder-open"></i>
+                            {{ translate('serverFiles', 'files', data['lang']) }}
+                          </span>
+                          </input>
+                        </div>
+                      </div>
+                      <div class="modal-footer">
+                        <button type="button" id="modal-cancel" class="btn btn-secondary" data-dismiss="modal"><i
+                            class="ph-bold ph-x"></i></button>
+                        <button type="button" id="modal-okay" data-dismiss="modal" class="btn btn-primary"><i
+                            class="ph-bold ph-thumbs-up"></i></button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <button type="submit" class="btn btn-success mr-2">{{ translate('serverBackups', 'save', data['lang'])
+                  }}</button>
+                <button type="reset" class="btn btn-light cancel-button">{{ translate('serverBackups', 'cancel',
+                  data['lang'])
+                  }}</button>
+              </form>
+            </div>
+
+            <div class="col-md-6 col-sm-12">
+              <div class="text-center">
+
+                <table class="table table-responsive dataTable" id="backup_table">
+                  <h4 class="card-title">{{ translate('serverBackups', 'currentBackups', data['lang']) }}</h4>
+                  <thead>
+                    <tr>
+                      <th>{{ translate('serverBackups', 'options', data['lang']) }}</th>
+                      <th>{{ translate('serverBackups', 'path', data['lang']) }}</th>
+                      <th>{{ translate('serverBackups', 'size', data['lang']) }}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for backup in data['backup_list'] %}
+                    <tr>
+                      <td>
+                        {% if data["backup_config"]["backup_type"] != "snapshot" %}
+                        <button class="btn btn-primary download" data-file="{{backup['path']}}">
+                          <i class="ph-bold ph-download-simple" aria-hidden="true"></i>
+                          {{ translate('serverBackups', 'download', data['lang']) }}
+                        </button>
+                        <br>
+                        <br>
+                        {% end %}
+                        <button data-file="{{ backup['path'] }}"
+                          data-backup_location="{{ data['backup_config']['backup_location'] }}"
+                          class="btn btn-danger del_button">
+                          <i class="ph-fill ph-trash-simple" aria-hidden="true"></i>
+                          {{ translate('serverBackups', 'delete', data['lang']) }}
+                        </button>
+                        <button data-file="{{ backup['path'] }}" data-type="{{data['backup_config']['backup_type']}}"
+                          class="btn btn-warning restore_button">
+                          <i class="ph-fill ph-arrow-counter-clockwise" aria-hidden="true"></i>
+                          {{ translate('serverBackups', 'restore', data['lang']) }}
+                        </button>
+                      </td>
+                      <td>{{ backup['path'] }}</td>
+                      <td>{{ backup['size'] }}</td>
+                    </tr>
+                    {% end %}
+
+                  </tbody>
+                </table>
+
+              </div>
+            </div>
+          </div>
+          <div class="col-md-12 col-sm-12">
+            <br>
+            <br>
+            <div class="card-header header-sm d-flex justify-content-between align-items-center">
+              <h4 class="card-title"><i class="ph-fill ph-hard-drives"></i> {{ translate('serverBackups',
+                'excludedBackups',
+                data['lang']) }} <small class="text-muted ml-1"></small> </h4>
+            </div>
+            <br>
+            <ul>
+              {% for item in data['exclusions'] %}
+              <li>{{item}}</li>
+              <br>
+              {% end %}
+            </ul>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+
+</div>
+<link rel="stylesheet" href="/static/assets/css/partial/crafty-backup.css">
+<!-- content-wrapper ends -->
+
+{% end %}
+
+{% block js %}
+<script>
+
+  const serverId = new URLSearchParams(document.location.search).get('id')
+  const backup_id = new URLSearchParams(document.location.search).get('backup_id')
+
+
+  //used to get cookies from browser - this is part of tornados xsrf protection - it's for extra security
+  function getCookie(name) {
+    var r = document.cookie.match("\\b" + name + "=([^;]*)\\b");
+    return r ? r[1] : undefined;
+  }
+
+  async function backup_started() {
+    const token = getCookie("_xsrf")
+    let res = await fetch(`/api/v2/servers/${serverId}/action/backup_server/${backup_id}`, {
+      method: 'POST',
+      headers: {
+        'X-XSRFToken': token
+      }
+    });
+    let responseData = await res.json();
+    if (responseData.status === "ok") {
+      console.log(responseData);
+      $("#backup_button").prop('disabled', true)
+    } else {
+
+      bootbox.alert({
+        title: responseData.error,
+        message: responseData.error_data
+      });
+    }
+    return;
+  }
+  async function del_backup(filename, id) {
+    const token = getCookie("_xsrf")
+    let contents = JSON.stringify({ "filename": filename })
+    let res = await fetch(`/api/v2/servers/${serverId}/backups/backup/${backup_id}/files/`, {
+      method: 'DELETE',
+      headers: {
+        'token': token,
+      },
+      body: contents
+    });
+    let responseData = await res.json();
+    if (responseData.status === "ok") {
+      window.location.reload();
+    } else {
+      bootbox.alert({
+        "title": responseData.status,
+        "message": responseData.error
+      })
+    }
+  }
+
+  async function restore_backup(filename, id, in_place) {
+    const token = getCookie("_xsrf")
+    let contents = JSON.stringify({ "filename": filename, "inPlace": Boolean(parseInt(in_place)) })
+    var dialog = bootbox.dialog({
+      message: "<i class='ph ph-spinner-gap ph-spin'></i> {{ translate('serverBackups', 'restoring', data['lang']) }}",
+      closeButton: false
+    });
+    let res = await fetch(`/api/v2/servers/${serverId}/backups/backup/${backup_id}/`, {
+      method: 'POST',
+      headers: {
+        'token': token,
+      },
+      body: contents
+    });
+    let responseData = await res.json();
+    if (responseData.status === "ok") {
+      window.location.href = `/panel/server_detail?id=${serverId}&subpage=term`;
+    } else {
+      bootbox.alert({
+        "title": responseData.status,
+        "message": responseData.error_data
+      })
+    }
+  }
+
+  $("#before-check").on("click", function () {
+    if ($("#before-check:checked").val()) {
+      $("#backup_before").css("display", "inline-block");
+    } else {
+      $("#backup_before").css("display", "none");
+      $("#backup_before").val("");
+    }
+  });
+  $("#after-check").on("click", function () {
+    if ($("#after-check:checked").val()) {
+      $("#backup_after").css("display", "inline-block");
+    } else {
+      $("#backup_after").css("display", "none");
+      $("#backup_after").val("");
+    }
+  });
+
+  function replacer(key, value) {
+    if (key === "excluded_dirs") {
+      if (value == 0) {
+        return []
+      } else {
+        return value
+      }
+    }
+    if (key != "before" && key != "after") {
+      if (typeof value == "boolean" || key === "executable_update_url") {
+        return value
+      } else {
+        return (isNaN(value) ? value : +value);
+      }
+    } else {
+      return value;
+    }
+  }
+
+  $("#snapshot").on("change", function () {
+    if ($("#snapshot").is(':checked')) {
+      $("#beta-ribbon").removeClass("d-none")
+      console.log($("#snapshot").data("disclaimer"))
+      bootbox.alert($("#snapshot").data("disclaimer"))
+    } else {
+      console.log("In else")
+      $("#beta-ribbon").addClass("d-none")
+    }
+  })
+  $("#zip_vault").on("change", function () {
+    console.log("In else")
+    $("#beta-ribbon").addClass("d-none")
+  })
+
+  $(document).ready(function () {
+    $(".backup-explain").on("click", function (e) {
+      e.preventDefault();
+      bootbox.alert($(this).data("explain"));
+    });
+    $(".cancel-button").on("click", function () {
+      location.href = `/panel/server_detail?id=${serverId}&subpage=backup`
+    });
+    webSocket.on('backup_status', function (backup) {
+      text = ``;
+      $(`#${backup.backup_id}_status`).show();
+      if (backup.percent >= 100) {
+        $(`#${backup.backup_id}_status`).hide()
+        setTimeout(function () {
+          window.location.reload(1);
+        }, 5000);
+      } else {
+        text = `<div class="progress-bar progress-bar-striped progress-bar-animated"
+          role="progressbar" style="width:${backup.percent}%;"
+          aria-valuenow="${backup.percent}" aria-valuemin="0" aria-valuemax="100">${backup.percent}%</div>`
+
+        $(`#${backup.backup_id}_status`).html(text);
+      }
+    });
+    $("#backup-form").on("submit", async function (e) {
+      e.preventDefault();
+      const token = getCookie("_xsrf")
+      let backupForm = document.getElementById("backup-form");
+
+      let formData = new FormData(backupForm);
+      //Remove checks that we don't need in form data.
+      formData.delete("after-check");
+      formData.delete("before-check");
+      //Create an object from the form data entries
+      let formDataObject = Object.fromEntries(formData.entries());
+      //We need to make sure these are sent regardless of whether or not they're checked
+      formDataObject.compress = $("#compress").prop('checked');
+      formDataObject.shutdown = $("#shutdown").prop('checked');
+      if ($("#root_files_button").hasClass("clicked")) {
+        excluded = []
+        $('input.excluded:checkbox:checked').each(function () {
+          excluded.push($(this).val());
+        });
+        formDataObject.excluded_dirs = excluded;
+      }
+      delete formDataObject.root_path
+      console.log(formDataObject);
+      // Format the plain form data as JSON
+      let formDataJsonString = JSON.stringify(formDataObject, replacer);
+
+      console.log(formDataJsonString);
+      let url = `/api/v2/servers/${serverId}/backups/backup/${backup_id}/`
+      let method = "PATCH"
+      if (!backup_id) {
+        url = `/api/v2/servers/${serverId}/backups/`
+        method = "POST";
+      }
+      let res = await fetch(url, {
+        method: method,
+        headers: {
+          'X-XSRFToken': token
+        },
+        body: formDataJsonString,
+      });
+      let responseData = await res.json();
+      if (responseData.status === "ok") {
+        window.location.href = `/panel/server_detail?id=${serverId}&subpage=backup`;
+      } else {
+
+        bootbox.alert({
+          title: responseData.error,
+          message: responseData.error_data
+        });
+      }
+    });
+
+    try {
+      if ($('#backup_location').val() == '') {
+        try {
+          document.getElementById('backup_now_button').disabled = true;
+        } catch {
+
+        }
+      } else {
+        document.getElementById('backup_now_button').disabled = false;
+      }
+    } catch {
+      try {
+        document.getElementById('backup_now_button').disabled = false;
+      } catch {
+
+      }
+    }
+    console.log("ready!");
+    $("#backup_config_box").hide();
+    $("#backup_save_note").hide();
+
+    $("#show_config").click(function () {
+      $("#backup_config_box").toggle();
+      $('#backup_button').hide();
+      $('#backup_save_note').show();
+      $('#backup_data').hide();
+    });
+
+    $('#backup_table').DataTable({
+      "order": [[1, "desc"]],
+      "paging": false,
+      "lengthChange": false,
+      "searching": true,
+      "ordering": true,
+      "info": true,
+      "autoWidth": false,
+      "responsive": true,
+    });
+
+    $(".del_button").click(function () {
+      var file_to_del = $(this).data("file");
+      var backup_location = $(this).data('backup_location');
+
+      console.log("file to delete is" + file_to_del);
+
+      bootbox.confirm({
+        title: "{% raw translate('serverBackups', 'destroyBackup', data['lang']) %}",
+        message: "{{ translate('serverBackups', 'confirmDelete', data['lang']) }}",
+        buttons: {
+          cancel: {
+            label: '<i class="ph-bold ph-x"></i> {{ translate("serverBackups", "cancel", data['lang']) }}'
+          },
+          confirm: {
+            label: '<i class="ph-bold ph-check"></i> {{ translate("serverBackups", "confirm", data['lang']) }}'
+          }
+        },
+        callback: function (result) {
+          if (result == true) {
+            var full_path = backup_location + '/' + file_to_del;
+            del_backup(file_to_del, serverId);
+          }
+        }
+      });
+    });
+
+    $(".download").click(async function () {
+      let file = $(this).data("file");
+      window.open(`/api/v2/servers/${serverId}/backups/backup/${backup_id}/download/${encodeURIComponent(file)}`, '_blank');
+    });
+
+    $(".restore_button").click(function () {
+      var file_to_restore = $(this).data("file");
+      if ($(this).data("type") === "snapshot") {
+        restore_backup(file_to_restore, serverId, 1)
+      } else {
+        bootbox.dialog({
+          title: "{{ translate('serverBackups', 'restore', data['lang']) }} " + file_to_restore,
+          message: `
+      <div id="restore-box">
+        <div class="custom-control custom-switch">
+          <input class="custom-control-input" type="radio" name="restoreOption" id="optionInPlace" value=1>
+          <label class="custom-control-label" for="optionInPlace">
+            {{ translate("serverBackups", "inplace", data['lang']) }}
+          </label>
+        </div>
+        <br>
+        <br>
+        <div class="custom-control custom-switch">
+          <input class="custom-control-input" type="radio" name="restoreOption" id="optionReplace" value=0>
+          <label class="custom-control-label" for="optionReplace">
+            {{ translate("serverBackups", "replace", data['lang']) }}
+          </label>
+        </div>
+      </div>
+    `,
+          buttons: {
+            cancel: {
+              label: '<i class="ph-bold ph-x"></i> {{ translate("serverBackups", "cancel", data['lang']) }}'
+      },
+            confirm: {
+              label: '<i class="ph-bold ph-check"></i> {{ translate("serverBackups", "restore", data['lang']) }}',
+              className: 'btn-outline-danger',
+              callback: function () {
+                var selectedOption = $('input[name="restoreOption"]:checked').val();
+                if (!selectedOption || typeof (selectedOption) == "undefined") {
+                  bootbox.alert(`{{ translate("serverBackups", "radioRequired", data['lang']) }}`)
+                } else {
+                  restore_backup(file_to_restore, serverId, selectedOption)
+                }
+              }
+            }
+          }
+        });
+      }
+    });
+
+    $("#backup_now_button").click(function () {
+      backup_started();
+    });
+
+  });
+
+  document.getElementById("modal-cancel").addEventListener("click", function () {
+    document.getElementById("root_files_button").classList.remove('clicked');
+    document.getElementById("main-tree-div").innerHTML = '<input type="checkbox" id="main-tree-input" name="root_path" value="" disabled><span id="main-tree" class="files-tree-title tree-caret-down root-dir" data-path=""><i class="ph-fill ph-folder"></i><i class="ph-fill ph-folder-open"></i>{{ translate("serverFiles", "files", data["lang"]) }}</span></input>'
+  })
+
+  document.getElementById("root_files_button").addEventListener("click", function () {
+    if ($("#root_files_button").data('server_path') != "") {
+      if (document.getElementById('root_files_button').classList.contains('clicked')) {
+        show_file_tree();
+        return;
+      } else {
+        document.getElementById('root_files_button').classList.add('clicked');
+      }
+      path = $("#root_files_button").data('server_path')
+      console.log($("#root_files_button").data('server_path'))
+      const token = getCookie("_xsrf");
+      var dialog = bootbox.dialog({
+        message: '<p class="text-center mb-0"><i class="ph-fill ph-gear ph-spin"></i> Please wait while we gather your files...</p>',
+        closeButton: false
+      });
+
+      setTimeout(function () {
+        var x = document.querySelector('.bootbox');
+        if (x) {
+          x.remove()
+        }
+        var x = document.querySelector('.modal-backdrop');
+        if (x) {
+          x.remove()
+        }
+        document.getElementById('main-tree-input').setAttribute('value', path)
+        getTreeView(path);
+        show_file_tree();
+
+      }, 5000);
+    } else {
+      bootbox.alert("You must input a path before selecting this button");
+    }
+  });
+
+  function getDirView(event) {
+    let path = event.target.parentElement.getAttribute("data-path");
+    if (document.getElementById(path).classList.contains('clicked')) {
+      return;
+    } else {
+      getTreeView(path);
+    }
+
+  }
+  async function getTreeView(path) {
+    console.log(path)
+    const token = getCookie("_xsrf");
+    let url = `/api/v2/servers/${serverId}/files/${backup_id}`
+    if (!backup_id) {
+      url = `/api/v2/servers/${serverId}/files/`
+      console.log("NEW URL")
+    }
+    console.log(url);
+    let res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'X-XSRFToken': token
+      },
+      body: JSON.stringify({ "page": "backups", "path": path }),
+    });
+    let responseData = await res.json();
+    if (responseData.status === "ok") {
+      console.log(responseData);
+      process_tree_response(responseData);
+
+    } else {
+
+      bootbox.alert({
+        title: responseData.error,
+        message: responseData.error_data
+      });
+    }
+  }
+
+  function process_tree_response(response) {
+    let path = response.data.root_path.path;
+    let text = `<ul class="tree-nested d-block" id="${path}ul">`;
+    Object.entries(response.data).forEach(([key, value]) => {
+      if (key === "root_path" || key === "db_stats") {
+        //continue is not valid in for each. Return acts as a continue.
+        return;
+      }
+      let checked = ""
+      let dpath = value.path;
+      let filename = key;
+      if (value.excluded) {
+        checked = "checked"
+      }
+      if (value.dir) {
+        text += `<li class="tree-item" data-path="${dpath}">
+                            \n<div id="${dpath}" data-path="${dpath}" data-name="${filename}" class="tree-caret tree-ctx-item tree-folder">
+                            <input type="checkbox" class="checkBoxClass excluded" value="${dpath}" ${checked}>
+                            <span id="${dpath}span" class="files-tree-title" data-path="${dpath}" data-name="${filename}" onclick="getDirView(event)">
+                            <i class="text-info ph-fill ph-folder"></i>
+                            <strong>${filename}</strong>
+                            </span>
+                            </input></div><li>`
+      } else {
+        text += `<li
+                        class="d-block tree-ctx-item tree-file"
+                        data-path="${dpath}"
+                        data-name="${filename}"
+                        onclick=""><input type='checkbox' class="checkBoxClass excluded" name='root_path' value="${dpath}" ${checked}><span style="margin-right: 6px;">
+                        <i class="ph-fill ph-file"></i></span></input>${filename}</li>`
+      }
+    });
+    text += `</ul>`;
+    if (response.data.root_path.top) {
+      try {
+        document.getElementById('main-tree-div').innerHTML += text;
+        document.getElementById('main-tree').parentElement.classList.add("clicked");
+      } catch {
+        document.getElementById('files-tree').innerHTML = text;
+      }
+    } else {
+      try {
+        document.getElementById(path + "span").classList.add('tree-caret-down');
+        document.getElementById(path).innerHTML += text;
+        document.getElementById(path).classList.add("clicked");
+      } catch {
+        console.log("Bad")
+      }
+
+      var toggler = document.getElementById(path + "span");
+
+      if (toggler.classList.contains('files-tree-title')) {
+        document.getElementById(path + "span").addEventListener("click", function caretListener() {
+          document.getElementById(path + "ul").classList.toggle("d-block");
+          document.getElementById(path + "span").classList.toggle("tree-caret-down");
+        });
+      }
+    }
+  }
+
+  function getToggleMain(event) {
+    path = event.target.parentElement.getAttribute('data-path');
+    document.getElementById("files-tree").classList.toggle("d-block");
+    document.getElementById(path + "span").classList.toggle("tree-caret-down");
+    document.getElementById(path + "span").classList.toggle("tree-caret");
+  }
+  function show_file_tree() {
+    $("#dir_select").modal();
+  }
+
+</script>
+
+{% end %}

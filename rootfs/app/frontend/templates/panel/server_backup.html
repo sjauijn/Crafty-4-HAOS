@@ -1,0 +1,504 @@
+{% extends ../base.html %}
+
+{% block meta %}
+{% end %}
+
+{% block title %}Crafty Controller - {{ translate('serverDetails', 'serverDetails', data['lang']) }}{% end %}
+
+{% block content %}
+
+<div class="content-wrapper">
+
+  <!-- Page Title Header Starts-->
+  <div class="row page-title-header">
+    <div class="col-12">
+      <div class="page-header">
+        <h4 class="page-title">
+          {{ translate('serverDetails', 'serverDetails', data['lang']) }} - {{
+          data['server_stats']['server_id']['server_name'] }}
+          <br />
+          <small>UUID: {{ data['server_stats']['server_id']['server_id'] }}</small>
+        </h4>
+      </div>
+    </div>
+
+  </div>
+  <!-- Page Title Header Ends-->
+
+  {% include "parts/details_stats.html %}
+
+  <div class="row">
+
+    <div class="col-sm-12 grid-margin">
+      <div class="card">
+        <div class="card-body  pt-0">
+
+          <span class="d-none d-sm-block">
+            {% include "parts/server_controls_list.html %}
+          </span>
+          <span class="d-block d-sm-none">
+            {% include "parts/m_server_controls_list.html %}
+          </span>
+          <div class="row">
+            <div class="col-md-12 col-sm-12 overflow-x-auto">
+              <div class="card">
+                <div class="card-header header-sm d-flex justify-content-between align-items-center">
+                  <h4 class="card-title"><i class="ph-fill ph-bell"></i> {{ translate('serverBackups', 'backups',
+                    data['lang']) }} </h4>
+                  {% if data['user_data']['hints'] %}
+                  <span class="too_small" title="{{ translate('serverSchedules', 'cannotSee', data['lang']) }}" ,
+                    data-content="{{ translate('serverSchedules', 'cannotSeeOnMobile', data['lang']) }}" ,
+                    data-placement="bottom"></span>
+                  {% end %}
+                  <div><a class="btn btn-info"
+                      href="/panel/add_backup?id={{ data['server_stats']['server_id']['server_id'] }}"><i class="ph ph-plus-circle"></i>
+                       {{ translate('serverBackups', 'newBackup', data['lang']) }}</a>
+                  </div>
+                </div>
+                <div class="card-body">
+                  {% if len(data['backups']) == 0 %}
+                  <div class="text-align-center text-secondary">
+                    <h7>{{ translate('serverBackups', 'no-backup', data['lang']) }}.</h7>
+                  </div>
+                  {% end %}
+                  {% if len(data['backups']) > 0 %}
+                  <div class="d-none d-lg-block">
+                    <table class="table table-hover responsive-table" aria-label="backups list" id="backup_table"
+                      style="table-layout:fixed;">
+                      <thead>
+                        <tr class="rounded">
+                          <th scope="col" style="width: 15%; min-width: 10px;">{{ translate('serverBackups', 'name',
+                            data['lang']) }} </th>
+                          <th scope="col" style="width: 10%; min-width: 10px;">{{ translate('serverBackups', 'status',
+                            data['lang']) }} </th>
+                          <th scope="col" style="width: 50%; min-width: 50px;">{{ translate('serverBackups',
+                            'storageLocation', data['lang']) }}</th>
+                          <th scope="col" style="width: 10%; min-width: 50px;">Backup Type</th>
+                          <th scope="col" style="width: 10%; min-width: 50px;">{{ translate('serverBackups', 'actions',
+                            data['lang']) }}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {% for backup in data['backups'] %}
+                        <tr>
+                          <td id="{{backup.backup_name}}" class="id">
+                            <p>{{backup.backup_name}}</p>
+                            <br>
+                            {% if backup.default %}
+                            <span class="badge-pill badge-outline-warning">{{ translate('serverBackups', 'default',
+                              data['lang']) }}</span><small><button class="badge-pill badge-outline-info backup-explain"
+                                data-explain="{{ translate('serverBackups', 'defaultExplain', data['lang'])}}"><i
+                                  class="ph-bold ph-question"></i></button></small>
+                            {% end %}
+                          </td>
+                          <td>
+                            <div id="{{backup.backup_id}}_status">
+                              <button class="btn btn-outline-success backup-status" data-status="{{ backup.status }}"
+                                data-Standby="{{ translate('serverBackups', 'standby', data['lang'])}}"
+                                data-Failed="{{ translate('serverBackups', 'failed', data['lang'])}}"></button>
+                            </div>
+                          </td>
+                          <td id="{{backup.backup_location}}" class="type">
+                            <p class="no-scroll">{{backup.backup_location}}</p>
+                          </td>
+                          <td id="{{backup.max_backups}}" class="trigger overflow-scroll" style="max-width: 30px;">
+                            <p>{{backup.max_backups}}</p>
+                          </td>
+                          <td id="backup_edit" class="action">
+                            <button
+                              onclick="window.location.href=`/panel/edit_backup?id={{ data['server_stats']['server_id']['server_id'] }}&backup_id={{backup.backup_id}}`"
+                              class="btn btn-info">
+                              <i class="ph-fill ph-pencil-simple"></i>
+                            </button>
+                            {% if not backup.default %}
+                            <button data-backup={{ backup.backup_id }} data-backupname={{ backup.backup_name }}
+                              class="btn btn-danger del_button">
+                              <i class="ph-fill ph-trash-simple" aria-hidden="true"></i>
+                            </button>
+                            {% end %}
+                            <button data-backup={{ backup.backup_id }} data-toggle="tooltip"
+                              title="{{ translate('serverBackups', 'run', data['lang']) }}"
+                              class="btn btn-outline-warning run-backup backup_now_button">
+                              <i class="ph-fill ph-fast-forward"></i>
+                            </button>
+                          </td>
+                        </tr>
+                        {% end %}
+                      </tbody>
+                    </table>
+                  </div>
+                  <div class="d-block d-lg-none">
+                    <table aria-label="backups list" class="table table-hover responsive-table" id="backup_table_mini"
+                      style="table-layout:fixed;">
+                      <thead>
+                        <tr class="rounded">
+                          <th style="width: 40%; min-width: 10px;">Name
+                          </th>
+                          <th style="width: 40%; min-width: 50px;">{{ translate('serverBackups', 'edit', data['lang'])
+                            }}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {% for backup in data['backups'] %}
+                        <tr>
+                          <td id="{{backup.backup_name}}" class="id">
+                            <p>{{backup.backup_name}}</p>
+                            <br>
+                            <div id="{{backup.backup_id}}_status">
+                              <button class="btn btn-outline-success backup-status" data-status="{{ backup.status }}"
+                                data-Standby="{{ translate('serverBackups', 'standby', data['lang'])}}"
+                                data-Failed="{{ translate('serverBackups', 'failed', data['lang'])}}"></button>
+                            </div>
+                            <br>
+                            {% if backup.default %}
+                            <span class="badge-pill badge-outline-warning">{{ translate('serverBackups', 'default',
+                              data['lang']) }}</span><small><button class="badge-pill badge-outline-info backup-explain"
+                                data-explain="{{ translate('serverBackups', 'defaultExplain', data['lang'])}}"><i
+                                  class="ph-bold ph-question"></i></button></small>
+                            {% end %}
+                          </td>
+                          <td id="backup_edit" class="action">
+                            <button
+                              onclick="window.location.href=`/panel/edit_backup?id={{ data['server_stats']['server_id']['server_id'] }}&backup_id={{backup.backup_id}}`"
+                              class="btn btn-info">
+                              <i class="ph-fill ph-pencil-simple"></i>
+                            </button>
+                            {% if not backup.default %}
+                            <button data-backup={{ backup.backup_id }} data-backupname={{ backup.backup_name }}
+                              class="btn btn-danger del_button">
+                              <i class="ph-fill ph-trash-simple" aria-hidden="true"></i>
+                            </button>
+                            {% end %}
+                            <button data-backup={{ backup.backup_id }} data-toggle="tooltip"
+                              title="{{ translate('serverBackups', 'run', data['lang']) }}"
+                              class="btn btn-outline-warning test-socket backup_now_button">
+                              <i class="ph-fill ph-fast-forward"></i>
+                            </button>
+                          </td>
+                        </tr>
+                        {% end %}
+                      </tbody>
+                    </table>
+                  </div>
+                  {% end %}
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+
+</div>
+<link rel="stylesheet" href="/static/assets/css/partial/crafty-backup.css">
+<!-- content-wrapper ends -->
+
+{% end %}
+
+{% block js %}
+<script>
+
+  const serverId = new URLSearchParams(document.location.search).get('id')
+
+
+  //used to get cookies from browser - this is part of tornados xsrf protection - it's for extra security
+  function getCookie(name) {
+    var r = document.cookie.match("\\b" + name + "=([^;]*)\\b");
+    return r ? r[1] : undefined;
+  }
+
+  async function backup_started(backup_id) {
+    const token = getCookie("_xsrf")
+    console.log(backup_id)
+    let res = await fetch(`/api/v2/servers/${serverId}/action/backup_server/${backup_id}/`, {
+      method: 'POST',
+      headers: {
+        'X-XSRFToken': token
+      }
+    });
+    let responseData = await res.json();
+    if (responseData.status === "ok") {
+      console.log(responseData);
+      $("#backup_button").prop('disabled', true)
+    } else {
+
+      bootbox.alert({
+        title: responseData.error,
+        message: responseData.error_data
+      });
+    }
+    return;
+  }
+  async function del_backup(backup_id) {
+    const token = getCookie("_xsrf")
+    let res = await fetch(`/api/v2/servers/${serverId}/backups/backup/${backup_id}`, {
+      method: 'DELETE',
+      headers: {
+        'token': token,
+      },
+      body: {}
+    });
+    let responseData = await res.json();
+    if (responseData.status === "ok") {
+      window.location.reload();
+    } else {
+      bootbox.alert({
+        "title": responseData.status,
+        "message": responseData.error
+      })
+    }
+  }
+
+  $(document).ready(function () {
+    console.log("ready!");
+    $(".backup-explain").on("click", function () {
+      bootbox.alert($(this).data("explain"));
+    });
+
+    $(".backup-status").on("click", function () {
+      if ($(this).data('message') != "") {
+        bootbox.alert($(this).data('message'));
+      }
+    });
+    $('.backup-status').each(function () {
+      // Get the JSON string from the element's text
+      var data = $(this).data('status');
+
+      try {
+
+        // Update the element's text with the status value
+        $(this).text($(this).data(data["status"].toLowerCase()));
+
+        // Optionally, add classes based on status to style the element
+        $(this).attr('data-message', data["message"]);
+        if (data.status === 'Active') {
+          $(this).removeClass();
+          $(this).addClass('badge-pill badge-outline-success btn');
+        } else if (data.status === 'Failed') {
+          $(this).removeClass();
+          $(this).addClass('badge-pill badge-outline-danger btn');
+        } else if (data.status === 'Standby') {
+          $(this).removeClass();
+          $(this).addClass('badge-pill badge-outline-secondary btn');
+        }
+      } catch (e) {
+        console.error('Invalid JSON string:', e);
+      }
+    });
+
+    if (webSocket) {
+      webSocket.on('backup_status', function (backup) {
+        text = ``;
+        console.log(backup)
+        if (backup.percent >= 100) {
+          $(`#${backup.backup_id}_status`).html(`<span class="badge-pill badge-outline-success backup-status"
+        >Completed</span>`);
+          setTimeout(function () {
+            window.location.reload(1);
+          }, 5000);
+        } else {
+          text = `<div class="progress-bar progress-bar-striped progress-bar-animated"
+          role="progressbar" style="width:${backup.percent}%;"
+          aria-valuenow="${backup.percent}" aria-valuemin="0" aria-valuemax="100">${backup.percent}%</div>`
+
+          $(`#${backup.backup_id}_status`).html(text);
+        }
+      });
+    }
+
+    $('#backup_table').DataTable({
+      "order": [[1, "desc"]],
+      "paging": false,
+      "lengthChange": false,
+      "searching": true,
+      "ordering": true,
+      "info": true,
+      "autoWidth": true,
+      "responsive": false,
+    });
+
+    $(".del_button").click(function () {
+      var file_to_del = $(this).data("backupname");
+      console.log(file_to_del)
+      let backup = $(this).data('backup');
+      console.log("file to delete is" + file_to_del);
+
+      bootbox.confirm({
+        title: "{% raw translate('serverBackups', 'destroyBackup', data['lang']) %}",
+        message: "{{ translate('serverBackups', 'confirmDelete', data['lang']) }}",
+        buttons: {
+          cancel: {
+            label: '<i class="ph-bold ph-x"></i> {{ translate("serverBackups", "cancel", data['lang']) }}'
+          },
+          confirm: {
+            label: '<i class="ph-bold ph-check"></i> {{ translate("serverBackups", "confirm", data['lang']) }}'
+          }
+        },
+        callback: function (result) {
+          console.log(result);
+          if (result == true) {
+
+            del_backup(backup);
+          }
+        }
+      });
+    });
+
+    $(".backup_now_button").click(function () {
+      console.log("Backup started")
+      backup_started($(this).data('backup'));
+    });
+
+  });
+
+  document.getElementById("modal-cancel").addEventListener("click", function () {
+    document.getElementById("root_files_button").classList.remove('clicked');
+    document.getElementById("main-tree-div").innerHTML = '<input type="checkbox" id="main-tree-input" name="root_path" value="" disabled><span id="main-tree" class="files-tree-title tree-caret-down root-dir" data-path=""><i class="ph-fill ph-folder"></i><i class="ph-fill ph-folder-open"></i>{{ translate("serverFiles", "files", data["lang"]) }}</span></input>'
+  })
+
+  document.getElementById("root_files_button").addEventListener("click", function () {
+    if ($("#root_files_button").data('server_path') != "") {
+      if (document.getElementById('root_files_button').classList.contains('clicked')) {
+        show_file_tree();
+        return;
+      } else {
+        document.getElementById('root_files_button').classList.add('clicked');
+      }
+      path = $("#root_files_button").data('server_path')
+      console.log($("#root_files_button").data('server_path'))
+      const token = getCookie("_xsrf");
+      var dialog = bootbox.dialog({
+        message: '<p class="text-center mb-0"><i class="ph-fill ph-gear ph-spin"></i> Please wait while we gather your files...</p>',
+        closeButton: false
+      });
+
+      setTimeout(function () {
+        var x = document.querySelector('.bootbox');
+        if (x) {
+          x.remove()
+        }
+        var x = document.querySelector('.modal-backdrop');
+        if (x) {
+          x.remove()
+        }
+        document.getElementById('main-tree-input').setAttribute('value', path)
+        getTreeView(path);
+        show_file_tree();
+
+      }, 5000);
+    } else {
+      bootbox.alert("You must input a path before selecting this button");
+    }
+  });
+
+  function getDirView(event) {
+    let path = event.target.parentElement.getAttribute("data-path");
+    if (document.getElementById(path).classList.contains('clicked')) {
+      return;
+    } else {
+      getTreeView(path);
+    }
+
+  }
+  async function getTreeView(path) {
+    console.log(path)
+    const token = getCookie("_xsrf");
+    let res = await fetch(`/api/v2/servers/${serverId}/files`, {
+      method: 'POST',
+      headers: {
+        'X-XSRFToken': token
+      },
+      body: JSON.stringify({ "page": "backups", "path": path }),
+    });
+    let responseData = await res.json();
+    if (responseData.status === "ok") {
+      console.log(responseData);
+      process_tree_response(responseData);
+
+    } else {
+
+      bootbox.alert({
+        title: responseData.error,
+        message: responseData.error_data
+      });
+    }
+  }
+
+  function process_tree_response(response) {
+    let path = response.data.root_path.path;
+    let text = `<ul class="tree-nested d-block" id="${path}ul">`;
+    Object.entries(response.data).forEach(([key, value]) => {
+      if (key === "root_path" || key === "db_stats") {
+        //continue is not valid in for each. Return acts as a continue.
+        return;
+      }
+      let checked = ""
+      let dpath = value.path;
+      let filename = key;
+      if (value.excluded) {
+        checked = "checked"
+      }
+      if (value.dir) {
+        text += `<li class="tree-item" data-path="${dpath}">
+                            \n<div id="${dpath}" data-path="${dpath}" data-name="${filename}" class="tree-caret tree-ctx-item tree-folder">
+                            <input type="checkbox" class="checkBoxClass excluded" value="${dpath}" ${checked}>
+                            <span id="${dpath}span" class="files-tree-title" data-path="${dpath}" data-name="${filename}" onclick="getDirView(event)">
+                            <i class="text-info ph-fill ph-folder"></i>
+                            <i class="text-info ph-fill ph-folder-open"></i>
+                            <strong>${filename}</strong>
+                            </span>
+                            </input></div><li>`
+      } else {
+        text += `<li
+                        class="d-block tree-ctx-item tree-file"
+                        data-path="${dpath}"
+                        data-name="${filename}"
+                        onclick=""><input type='checkbox' class="checkBoxClass excluded" name='root_path' value="${dpath}" ${checked}><span style="margin-right: 6px;">
+                        <i class="ph-fill ph-file"></i></span></input>${filename}</li>`
+      }
+    });
+    text += `</ul>`;
+    if (response.data.root_path.top) {
+      try {
+        document.getElementById('main-tree-div').innerHTML += text;
+        document.getElementById('main-tree').parentElement.classList.add("clicked");
+      } catch {
+        document.getElementById('files-tree').innerHTML = text;
+      }
+    } else {
+      try {
+        document.getElementById(path + "span").classList.add('tree-caret-down');
+        document.getElementById(path).innerHTML += text;
+        document.getElementById(path).classList.add("clicked");
+      } catch {
+        console.log("Bad")
+      }
+
+      var toggler = document.getElementById(path + "span");
+
+      if (toggler.classList.contains('files-tree-title')) {
+        document.getElementById(path + "span").addEventListener("click", function caretListener() {
+          document.getElementById(path + "ul").classList.toggle("d-block");
+          document.getElementById(path + "span").classList.toggle("tree-caret-down");
+        });
+      }
+    }
+  }
+
+  function getToggleMain(event) {
+    path = event.target.parentElement.getAttribute('data-path');
+    document.getElementById("files-tree").classList.toggle("d-block");
+    document.getElementById(path + "span").classList.toggle("tree-caret-down");
+    document.getElementById(path + "span").classList.toggle("tree-caret");
+  }
+  function show_file_tree() {
+    $("#dir_select").modal();
+  }
+
+</script>
+
+{% end %}

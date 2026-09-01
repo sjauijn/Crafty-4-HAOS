@@ -1,0 +1,464 @@
+{% extends ../base.html %}
+
+{% block meta %}
+{% end %}
+
+{% block title %}Crafty Controller - {{ translate('panelConfig', 'pageTitle', data['lang']) }}{% end %}
+
+{% block content %}
+<link rel="stylesheet" href="/static/assets/css/vendors/bootstrap-select-1.13.18.css">
+<link rel="stylesheet" href="/static/assets/css/partial/crafty-config-json.css">
+
+
+<div class="content-wrapper">
+  <!-- Page Title Header Starts-->
+  <div class="row page-title-header">
+    <div class="col-12">
+      <div class="page-header">
+        <h4 class="page-title">
+          {{ translate('panelConfig', 'title', data['lang']) }}
+          <br />
+        </h4>
+      </div>
+    </div>
+  </div>
+  <!-- Page Title Header Ends-->
+
+  <div class="row">
+    <div class="col-md-12 grid-margin">
+      <div class="card">
+        <div class="card-body">
+
+          {% if data['superuser'] %}
+          <span class="d-none d-sm-block">
+            {% include "parts/crafty_config_list.html %}
+          </span>
+          <span class="d-block d-sm-none">
+            {% include "parts/m_crafty_config_list.html %}
+          </span>
+          {% end %}
+
+          <!-- Page Title Header Starts-->
+          <div class="row page-title-header">
+            <div class="col-12">
+              <div class="page-header">
+                <!-- TODO: Translate the following -->
+                <h4 class="page-title">Config.json</h4>
+              </div>
+            </div>
+
+          </div>
+          <!-- Page Title Header Ends-->
+
+          <form id="config-form" method="post" action="/panel/config_json">
+            {% for section in data['config-json'].items() %}
+            <div class="card-header header-sm d-flex position-relative hand" data-toggle="collapse"
+              data-target="#{{section[0]}}">
+              <h3>{{translate('configJson', section[0], data['lang'])}}</h3>
+              <div class="right position-absolute top-0 end-0 p-2">
+                <i class="ph-bold ph-arrows-vertical"></i>
+              </div>
+            </div>
+            <div class="collapse" id="{{section[0]}}">
+              <br>
+              {% for item in section[1].items() %}
+              {% if item[0] == "reset_secrets_on_next_boot" %}
+              <div class="form-group reset-secret">
+                {% else %}
+                <div class="form-group">
+                  {% end %}
+                  <label class="form" for="{{item[0]}}">
+                    {{translate("configJson", item[0], data["lang"], False)}}
+                  </label>
+                  {% if item[0] == 'language' %}
+                  <select name="{{item[0]}}" class="form-control">
+                    {% for lang in data['availables_languages'] %}
+                    {% if lang == item[1] %}
+                    <option value="{{lang}}" selected>{{translate('language', lang, 'humanized_index', False)}}</option>
+                    {% else %}
+                    <option value="{{lang}}">{{translate('language', lang, 'humanized_index', False)}}
+                    </option>
+                    {% end %}
+                    {% end %}
+                  </select>
+                  {% elif item[0] == 'disabled_language_files' %}
+                  <div class="input-group">
+                    <button type="button" class="btn btn-outline-default custom-picker"
+                      onclick="$('option', $('#lang_select')).each(function(element) {$(this).removeAttr('selected').prop('selected', false); $('.selectpicker').selectpicker('refresh')});">{{
+                      translate('panelConfig', 'enableLang', data['lang']) }}</button>
+                    <select id="lang_select" class="form-control selectpicker show-tick" data-icon-base="ph"
+                      data-tick-icon="ph-check" multiple data-style="custom-picker">
+                      {% for lang in data['all_languages'] %}
+                      {% if lang in item[1] %}
+                      <option value="{{lang}}" selected>{{translate('language', lang, 'humanized_index', False)}}
+                      </option>
+                      {% else %}
+                      <option value="{{lang}}">{{translate('language', lang, 'humanized_index', False)}}
+                        {% end %}
+                        {% end %}
+                    </select>
+                    <textarea id="disabled_lang" name="{{item[0]}}" class="form-control list hidden"
+                      rows="{{ len(data['all_languages']) }}" value="{{','.join(item[1])}}"
+                      hidden>{{','.join(item[1])}}</textarea>
+                  </div>
+                  {% elif item[0] == 'monitored_mounts'%}
+                  <div class="input-group">
+                    <button type="button" class="btn btn-outline-default custom-picker"
+                      onclick="$('option', $('#mount_select')).each(function(element) {$(this).removeAttr('selected').prop('selected', false); $('.selectpicker').selectpicker('refresh')});">{{
+                      translate('panelConfig', 'noMounts', data['lang']) }}</button>
+                    <select id="mount_select" class="form-control selectpicker show-tick" data-icon-base="ph"
+                      data-tick-icon="ph-check" multiple data-style="custom-picker">
+                      {% for mount in data['all_partitions'] %}
+                      {% if mount in item[1] %}
+                      <option selected>{{mount}}</option>
+                      {% else %}
+                      <option>{{mount}}</option>
+                      {% end %}
+                      {% end %}
+                    </select>
+                    <textarea id="monitored_mounts" name="{{item[0]}}" class="form-control list hidden"
+                      rows="{{ len(data['all_partitions']) }}" value="{{','.join(item[1])}}"
+                      hidden>{{','.join(item[1])}}</textarea>
+                  </div>
+                  {% elif item[0] == 'time_range_presets' %}
+                  <div id="time-range-presets-editor">
+                    <table class="table table-sm" id="presets-table">
+                      <thead>
+                        <tr>
+                          <th>Hours</th>
+                          <th>Label</th>
+                          <th></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {% for preset in item[1] %}
+                        <tr class="preset-row">
+                          <td><input type="number" class="form-control preset-hours" value="{{ preset['hours'] }}" min="1" step="1"></td>
+                          <td><input type="text" class="form-control preset-label" value="{{ preset['label'] }}"></td>
+                          <td><button type="button" class="btn btn-sm btn-danger remove-preset"><i class="ph-bold ph-trash"></i></button></td>
+                        </tr>
+                        {% end %}
+                      </tbody>
+                    </table>
+                    <button type="button" class="btn btn-sm btn-success" id="add-preset"><i class="ph-bold ph-plus"></i> Add Preset</button>
+                  </div>
+                  {% elif item[0] == 'sampling_tiers' %}
+                  <div id="sampling-tiers-editor">
+                    <table class="table table-sm" id="sampling-tiers-table">
+                      <thead>
+                        <tr>
+                          <th>Max Hours</th>
+                          <th>Sample Rate</th>
+                          <th></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {% for tier in item[1] %}
+                        <tr class="sampling-tier-row">
+                          <td><input type="number" class="form-control tier-max-hours" value="{{ tier['max_hours'] }}" min="1" step="1"></td>
+                          <td><input type="number" class="form-control tier-sample-rate" value="{{ tier['sample_rate'] }}" min="1" step="1"></td>
+                          <td><button type="button" class="btn btn-sm btn-danger remove-tier"><i class="ph-bold ph-trash"></i></button></td>
+                        </tr>
+                        {% end %}
+                      </tbody>
+                    </table>
+                    <button type="button" class="btn btn-sm btn-success" id="add-tier"><i class="ph-bold ph-plus"></i> Add Tier</button>
+                  </div>
+                  {% elif isinstance(item[1], list) %}
+                  <textarea id="{{item[0]}}" value="{{','.join(item[1])}}" type="text" name="{{item[0]}}"
+                    class="form-control list">{{','.join(item[1])}}</textarea>
+                  {% elif isinstance(item[1], bool) %}
+
+                  {% if item[1] == True %}
+                  <div class="custom-control custom-radio">
+                    <input class="custom-control-input" type="radio" name="{{item[0]}}" id="{{item[0]}}_True"
+                      value="True" checked>
+                    <label class="custom-control-label" for="{{item[0]}}_True">
+                      {{translate("configJson", "True", data["lang"])}}
+                    </label>
+                  </div>
+                  <div class="custom-control custom-radio">
+                    <input class="custom-control-input" type="radio" name="{{item[0]}}" id="{{item[0]}}_False"
+                      value="False">
+                    <label class="custom-control-label" for="{{item[0]}}_False">{{translate("configJson", "False",
+                      data["lang"])}}</label>
+                  </div>
+                  {% else %}
+                  <div class="custom-control custom-radio">
+                    <input class="custom-control-input" type="radio" name="{{item[0]}}" id="{{item[0]}}_True"
+                      value="True">
+                    <label class="custom-control-label" for="{{item[0]}}_True">{{translate("configJson", "True",
+                      data["lang"])}}</label>
+                  </div>
+                  <div class="custom-control custom-radio">
+                    <input class="custom-control-input" type="radio" name="{{item[0]}}" id="{{item[0]}}_False"
+                      value="False" checked>
+                    <label class="custom-control-label" for="{{item[0]}}_False">
+                      {{translate("configJson", "False", data["lang"])}}
+                    </label>
+                  </div>
+                  {% end %}
+
+                  {% elif isinstance(item[1], int) %}
+                  <input type="number" class="form-control" name="{{item[0]}}" id="{{item[0]}}" value="{{ item[1]  }}"
+                    step="1" min="0" required>
+                  {% else %}
+                  <input type="text" class="form-control" name="{{item[0]}}" id="{{item[0]}}" value="{{ item[1]  }}"
+                    step="2" min="0" required>
+                  {% end %}
+                </div>
+                {% end %}
+              </div>
+              {% end %}
+              <br>
+              <button class="btn btn-success" type="submit">{{translate("configJson", "submit",
+                data["lang"])}}</button>&nbsp;<span id="submit-status"></span>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- content-wrapper ends -->
+
+{% end %}
+
+{% block js %}
+<script>
+  function replacer(key, value) {
+    if (key == "disabled_language_files" || key == "monitored_mounts" || key == "keywords" || key == "silent_notif_fields") {
+      if (value == 0) {
+        return []
+      } else {
+        return value
+      }
+    }
+    if (key == "time_range_presets") {
+      return value;
+    }
+    if (key == "sampling_tiers") {
+      return value;
+    }
+    if (typeof value == "boolean") {
+      return value
+    } else {
+      return (isNaN(value) ? value : +value);
+    }
+  }
+  $("#config-form").on("submit", async function (e) {
+    e.preventDefault();
+    $("#submit-status").html('<i class="ph-bold ph-spinner-gap"></i>');
+    const token = getCookie("_xsrf")
+    let configForm = document.getElementById("config-form");
+
+    let formData = new FormData(configForm);
+    formData.delete("disabled_lang");
+    formData.delete("lang_select");
+
+    //Create an object from the form data entries
+    let formDataObject = Object.fromEntries(formData.entries());
+    //We need to make sure these are sent regardless of whether or not they're checked
+    formDataObject.disabled_language_files = $('#lang_select').val();
+    formDataObject.monitored_mounts = $('#mount_select').val();
+    formDataObject.keywords = $('#keywords').val().split(",");
+    formDataObject.silent_notif_fields = $('#silent_notif_fields').val().split(",");
+
+    // Collect time range presets
+    const presets = [];
+    $('.preset-row').each(function() {
+      const hours = parseInt($(this).find('.preset-hours').val(), 10);
+      const label = $(this).find('.preset-label').val().trim();
+      if (hours > 0 && label) {
+        presets.push({hours: hours, label: label});
+      }
+    });
+    if (presets.length > 0) {
+      presets.sort(function(a, b) { return a.hours - b.hours; });
+      formDataObject.time_range_presets = presets;
+    }
+
+    // Collect sampling tiers
+    const tiers = [];
+    $('.sampling-tier-row').each(function() {
+      const maxHours = parseInt($(this).find('.tier-max-hours').val(), 10);
+      const sampleRate = parseInt($(this).find('.tier-sample-rate').val(), 10);
+      if (maxHours > 0 && sampleRate > 0) {
+        tiers.push({max_hours: maxHours, sample_rate: sampleRate});
+      }
+    });
+    if (tiers.length > 0) {
+      tiers.sort(function(a, b) { return a.max_hours - b.max_hours; });
+      formDataObject.sampling_tiers = tiers;
+    }
+
+    $('#config-form input[type="radio"]:checked').each(function () {
+      if ($(this).val() == 'True') {
+        formDataObject[this.name] = true;
+      } else {
+        formDataObject[this.name] = false;
+      }
+    });
+
+    // Format the plain form data as JSON
+    let formDataJsonString = JSON.stringify(formDataObject, replacer);
+
+
+    let res = await fetch(`/api/v2/crafty/config/`, {
+      method: 'PATCH',
+      headers: {
+        'X-XSRFToken': token
+      },
+      body: formDataJsonString,
+    });
+    let responseData = await res.json();
+    if (responseData.status === "ok") {
+      $("#submit-status").html('<i class="ph-bold ph-check"></i>');
+    } else {
+
+      bootbox.alert({
+        title: responseData.error,
+        message: responseData.error_data
+      });
+    }
+  });
+
+  function uuidv4() {
+    return ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, c =>
+      (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+    );
+  }
+  function convertFormToJSON(form) {
+    const array = $(form).serializeArray(); // Encodes the set of form elements as an array of names and values.
+    const json = {};
+    $.each(array, function () {
+      json[this.name] = this.value || "";
+    });
+    return json;
+  }
+
+  $(document).ready(function () {
+    $('[data-toggle="popover"]').popover();
+    if ($(window).width() < 1000) {
+      $('.too_small').popover("show");
+      $('.too_small2').popover("show");
+    }
+
+  });
+  $(window).ready(function () {
+    $('body').click(function () {
+      $('.too_small').popover("hide");
+      $('.too_small2').popover("hide");
+    });
+  });
+  $(window).resize(function () {
+    // This will execute whenever the window is resized
+    if ($(window).width() < 1000) {
+      $('.too_small').popover("show");
+    }
+    else {
+      $('.too_small').popover("hide");
+    } // New width
+    if ($(window).width() < 1000) {
+      $('.too_small2').popover("show");
+    }
+    else {
+      $('.too_small2').popover("hide");
+    } // New width
+  });
+  $('#file').change(function () {
+    console.log("File changed");
+    if ($('#file').val()) {
+      $('#upload-button').prop("disabled", false);
+      console.log("File changed good");
+    }
+  });
+
+  // Time range presets editor
+  $('#add-preset').on('click', function() {
+    const row = '<tr class="preset-row">' +
+      '<td><input type="number" class="form-control preset-hours" value="1" min="1" step="1"></td>' +
+      '<td><input type="text" class="form-control preset-label" value=""></td>' +
+      '<td><button type="button" class="btn btn-sm btn-danger remove-preset"><i class="ph-bold ph-trash"></i></button></td>' +
+      '</tr>';
+    $('#presets-table tbody').append(row);
+  });
+
+  $(document).on('click', '.remove-preset', function() {
+    if ($('.preset-row').length > 1) {
+      $(this).closest('tr').remove();
+    }
+  });
+
+  // Sampling tiers editor
+  $('#add-tier').on('click', function() {
+    const row = '<tr class="sampling-tier-row">' +
+      '<td><input type="number" class="form-control tier-max-hours" value="1" min="1" step="1"></td>' +
+      '<td><input type="number" class="form-control tier-sample-rate" value="1" min="1" step="1"></td>' +
+      '<td><button type="button" class="btn btn-sm btn-danger remove-tier"><i class="ph-bold ph-trash"></i></button></td>' +
+      '</tr>';
+    $('#sampling-tiers-table tbody').append(row);
+  });
+
+  $(document).on('click', '.remove-tier', function() {
+    if ($('.sampling-tier-row').length > 1) {
+      $(this).closest('tr').remove();
+    }
+  });
+</script>
+<script>
+
+  $(document).ready(function () {
+    console.log('ready for JS!');
+    $('.selectpicker').selectpicker("refresh");
+  });
+
+  $(".show_button").click(function () {
+    console.log("showing key");
+    api_key = $(this).attr("data-id");
+    bootbox.alert({
+      backdrop: true,
+      title: '',
+      message: api_key,
+    });
+  });
+
+  $('.clear-comm').click(function () {
+    const token = getCookie("_xsrf")
+    $.ajax({
+      type: "POST",
+      headers: { 'X-XSRFToken': token },
+      url: '/ajax/clear_comm',
+      success: function (data) {
+      },
+    });
+  })
+
+  $('.delete-photo').click(function () {
+    const token = getCookie("_xsrf")
+    let photo = $('#photo').find(":selected").val();
+    $.ajax({
+      type: "POST",
+      headers: { 'X-XSRFToken': token },
+      url: '/ajax/delete_photo?photo=' + photo,
+      success: function (data) {
+        location.reload();
+      },
+    });
+  })
+
+  $('.select-photo').click(function () {
+    const token = getCookie("_xsrf")
+    let photo = $('#photo').find(":selected").val();
+    $.ajax({
+      type: "POST",
+      headers: { 'X-XSRFToken': token },
+      url: '/ajax/select_photo?photo=' + photo,
+      success: function (data) {
+        window.location.reload();
+      },
+    });
+  })
+</script>
+<script src="/static/assets/vendors/js/bootstrap-select.min.js">
+</script>
+{% end %}

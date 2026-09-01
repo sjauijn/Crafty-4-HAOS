@@ -1,0 +1,450 @@
+{% extends ../base.html %}
+
+{% block meta %}
+{% end %}
+
+{% block title %}Crafty Controller - {{ translate('panelConfig', 'pageTitle', data['lang']) }}{% end %}
+
+{% block content %}
+<link href="/static/assets/css/partial/crafty-mfa_page.css" rel="stylesheet">
+<div class="content-wrapper">
+  <!-- Page Title Header Starts-->
+  <div class="row page-title-header">
+    <div class="col-12">
+      <div class="page-header">
+        <h4 class="page-title">
+          {{ translate('panelConfig', 'title', data['lang']) }}
+          <br />
+        </h4>
+      </div>
+    </div>
+  </div>
+  <!-- Page Title Header Ends-->
+
+  <div class="row">
+    <div class="col-md-12 grid-margin">
+      <div class="card">
+        <div class="card-body pt-0">
+
+
+          {% if data['superuser'] %}
+          <span class="d-none d-sm-block">
+            {% include "parts/crafty_config_list.html %}
+          </span>
+          <span class="d-block d-sm-none">
+            {% include "parts/m_crafty_config_list.html %}
+          </span>
+          {% end %}
+
+          <!-- Page Title Header Starts-->
+          <div class="row page-title-header">
+            <div class="col-12">
+              <div class="page-header">
+                <!-- TODO: Translate the following -->
+                <h4 class="page-title">{{ translate('panelConfig', 'pageTitle', data['lang']) }}</h4>
+              </div>
+            </div>
+
+          </div>
+          <!-- Page Title Header Ends-->
+
+          <div class="row">
+            <div class="col-md-12 col-lg-12 grid-margin stretch-card">
+              <div class="card">
+                <div class="card-header header-sm d-flex justify-content-between align-items-center">
+                  <h4 class="card-title"><i class="ph-fill ph-users"></i> {{ translate('panelConfig', 'users', data['lang'])
+                    }}</h4>
+                  {% if data['user_data']['hints'] %}
+                  <span class="too_small" title="{{ translate('dashboard', 'cannotSee', data['lang']) }}" ,
+                    data-content="{{ translate('dashboard', 'cannotSeeOnMobile2', data['lang']) }}" ,
+                    data-placement="top"></span>
+                  {% end %}
+                  <!-- TODO: Translate the following -->
+                  <div><a class="nav-link" href="/panel/add_user"><i class="ph-fill ph-plus-circle"></i> &nbsp; {{
+                      translate('panelConfig', 'newUser', data['lang']) }}</a></div>
+                </div>
+                <div class="card-body">
+                  <div class="table-responsive">
+                    <table class="table table-hover">
+                      <thead>
+                        <!-- TODO: Translate the following -->
+                        <tr class="rounded">
+                          <th>{{ translate('panelConfig', 'user', data['lang']) }}</th>
+                          <th>{{ translate('panelConfig', 'enabled', data['lang']) }}</th>
+                          <th>{{ translate('panelConfig', 'allowedServers', data['lang']) }}</th>
+                          <th>{{ translate('panelConfig', 'assignedRoles', data['lang']) }}</th>
+                          <th>{{ translate('panelConfig', 'edit', data['lang']) }}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {% for user in data['users'] %}
+                        <tr>
+                          <td><i class="ph-fill ph-user"></i><span id="user_{{user.user_id}}">{{ user.username }}</span>
+                          </td>
+                          <td>
+                            {% if user.enabled %}
+                            <span class="text-success">
+                              <i class="ph-fill ph-check-square"></i> Yes
+                            </span>
+                            {% else %}
+                            <span class="text-danger">
+                              <i class="ph-fill ph-x-square"></i> No
+                            </span>
+
+                            {% end %}
+                          </td>
+                          <td id="server_list_{{user.user_id}}">
+                            <ul id="{{user.user_id}}">
+                              {% for item in data['auth-servers'][user.user_id] %}
+                              <li>{{item}}</li>
+                              {% end %}
+                            </ul>
+                          </td>
+                          <td id="role_list_{{user.user_id}}">
+                            <ul>
+                              {% for item in data['user-roles'][user.user_id] %}
+                              <li data-toggle="tooltip" title="{{ item }}">{{item}}</li>
+                              {% end %}
+                            </ul>
+                          </td>
+                          <td>
+                            {% if len(list(user.totp_user)) != 0 %}
+                            <span data-translate="{{translate('otp', 'backupCodes', data['lang'])}}"
+                              data-toggle="tooltip" title="{{ translate('otp', 'renewRecovery', data['lang'])}}"
+                              class="clickable" data-name="{{user.username}}" data-id="{{user.user_id}}"
+                              id="renewCodes"><i class="ph-fill ph-shield"></i></span>
+                            {% end %}
+                            &nbsp;&nbsp;<span data-translate="{{translate('userConfig', 'userName', data['lang'])}}"
+                              data-toggle="tooltip" title="{{ translate('userConfig', 'userName', data['lang'])}}"
+                              id="username_{{user.user_id}}" class="edit_user clickable" data-name="{{user.username}}"
+                              data-id="{{user.user_id}}"><i class="ph-fill ph-user"></i></span>
+                            &nbsp;&nbsp;<span data-translate1="{{translate('userConfig', 'password', data['lang'])}}"
+                              data-translate2="{{translate('userConfig', 'repeat', data['lang'])}}"
+                              data-toggle="tooltip" title="{{ translate('userConfig', 'password', data['lang'])}}"
+                              class="edit_password clickable" data-id="{{user.user_id}}"><i
+                                class="ph-fill ph-lock"></i></span>
+                            &nbsp;&nbsp;<a data-toggle="tooltip"
+                              title="{{ translate('userConfig', 'pageTitle', data['lang'])}}"
+                              href="/panel/edit_user?id={{user.user_id}}"><i class="ph-fill ph-pencil-simple"></i></a>
+                          </td>
+                        </tr>
+                        {% end %}
+                        {% for user in data['managed_users'] %}
+                        <tr>
+                          <td><i class="ph-fill ph-user"></i> {{ user.username }}</td>
+                          <td>
+                            {% if user.enabled %}
+                            <span class="text-success">
+                              <i class="ph-fill ph-check-square"></i> Yes
+                            </span>
+                            {% else %}
+                            <span class="text-danger">
+                              <i class="ph-fill ph-x-square"></i> No
+                            </span>
+
+                            {% end %}
+                          </td>
+                          <td id="server_list_{{user.user_id}}">
+                            <ul id="{{user.user_id}}">
+                              {% for item in data['auth-servers'][user.user_id] %}
+                              <li>{{item}}</li>
+                              {% end %}
+                            </ul>
+                          </td>
+                          <td id="role_list_{{user.user_id}}">
+                            <ul>
+                              {% for item in data['user-roles'][user.user_id] %}
+                              <li data-toggle="tooltip" title="{{ item }}">{{item}}</li>
+                              {% end %}
+                            </ul>
+                          </td>
+                          <td><span data-translate="{{translate('userConfig', 'userName', data['lang'])}}"
+                              data-toggle="tooltip" title="{{ translate('userConfig', 'userName', data['lang'])}}"
+                              id="username_{{user.user_id}}" class="edit_user clickable" data-name="{{user.username}}"
+                              data-id="{{user.user_id}}"><i class="ph-fill ph-user"></i></span>
+                            &nbsp;&nbsp;<span data-translate1="{{translate('userConfig', 'password', data['lang'])}}"
+                              data-translate2="{{translate('userConfig', 'repeat', data['lang'])}}"
+                              data-toggle="tooltip" title="{{ translate('userConfig', 'password', data['lang'])}}"
+                              class="edit_password clickable" data-id="{{user.user_id}}"><i
+                                class="ph-fill ph-lock"></i></span>
+                            &nbsp;&nbsp;<a data-toggle="tooltip"
+                              title="{{ translate('userConfig', 'pageTitle', data['lang'])}}"
+                              href="/panel/edit_user?id={{user.user_id}}"><i class="ph-fill ph-pencil-simple"></i></a>
+                          </td>
+                        </tr>
+                        {% end %}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-12 col-lg-12 grid-margin stretch-card">
+              <div class="card">
+                <div class="card-header header-sm d-flex justify-content-between align-items-center">
+                  <h4 class="card-title"><i class="ph-fill ph-identification-badge"></i> {{ translate('panelConfig', 'roles',
+                    data['lang']) }}</h4>
+                  {% if data['user_data']['hints'] %}
+                  <span class="too_small2" title="{{ translate('dashboard', 'cannotSee', data['lang']) }}" ,
+                    data-content="{{ translate('dashboard', 'cannotSeeOnMobile2', data['lang']) }}" ,
+                    data-placement="top"></span>
+                  {% end %}
+                  <div><a class="nav-link" href="/panel/add_role"><i class="ph-fill ph-plus-circle"></i> &nbsp; {{
+                      translate('panelConfig', 'newRole', data['lang']) }}</a></div>
+                </div>
+                <div class="card-body">
+                  <div class="table-responsive">
+                    <table class="table table-hover">
+                      <thead>
+                        <!-- TODO: Translate the following -->
+                        <tr class="rounded">
+                          <th>{{ translate('panelConfig', 'role', data['lang']) }}</th>
+                          <th>{{ translate('panelConfig', 'allowedServers', data['lang']) }}</th>
+                          <th>{{ translate('panelConfig', 'roleUsers', data['lang']) }}</th>
+                          <th>{{ translate('panelConfig', 'edit', data['lang']) }}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {% for role in data['roles'] %}
+                        <tr>
+                          <td>{{ role.role_name }}</td>
+                          <td id="role_list_{{role.role_id}}">
+                            <ul id="{{role.role_id}}">
+                              {% for item in data['role-servers'][role.role_id] %}
+                              <li>{{item}}</li>
+                              {% end %}
+                            </ul>
+                          </td>
+                          <td>
+                            <ul>
+                              {% for user in data['users'] %}
+                              {% for ruser in data['user-roles'][user.user_id] %}
+                              {% if ruser == role.role_name %}
+                              <li>{{ user.username }}</li>
+                              {% end %}
+                              {% end %}
+                              {% end %}
+                            </ul>
+                          </td>
+                          <td><a href="/panel/edit_role?id={{role.role_id}}"><i class="ph-fill ph-pencil-simple"></i></a></td>
+                        </tr>
+                        {% end %}
+
+                        {% if not data['superuser'] %}
+                        {% for role in data['managed_roles'] %}
+                        {% if role.role_id not in data['assigned_roles'] %}
+                        <tr>
+                          <td>{{ role.role_name }}</td>
+                          <td id="role_list_{{role.role_id}}">
+                            <ul id="{{role.role_id}}">
+                              {% for item in data['role-servers'][role.role_id] %}
+                              <li>{{item}}</li>
+                              {% end %}
+                            </ul>
+                          </td>
+                          <td>
+                            <ul>
+                              {% for user in data['users'] %}
+                              {% for ruser in data['user-roles'][user.user_id] %}
+                              {% if ruser == role.role_name %}
+                              <li>{{ user.username }}</li>
+                              {% end %}
+                              {% end %}
+                              {% end %}
+                            </ul>
+                          </td>
+                          <td><a href="/panel/edit_role?id={{role.role_id}}"><i class="ph-fill ph-pencil-simple"></i></a></td>
+                        </tr>
+                        {% end %}
+                        {% end %}
+                        {% end %}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          {% if data['superuser'] and not data["docker"] %}
+          <div class="row">
+            <div class="col-md-12 col-sm-12 grid-margin stretch-card">
+              <div class="card">
+                <div class="card-header header-sm d-flex justify-content-between align-items-center">
+                  <h4 class="card-title"><i class="ph-fill ph-identification-badge"></i> {{ translate('panelConfig', 'adminControls',
+                    data['lang']) }}</h4>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6 col-sm-12 grid-margin stretch-card">
+              <div class="card">
+                <br>
+                <form id="server-path">
+                  <div class="form-group">
+                    <label for="global_server_path">{{ translate('panelConfig', 'globalServer',
+                      data['lang']) }}<small class="text-muted ml-1"> - {{ translate('panelConfig', 'globalExplain',
+                        data['lang']) }}</small></label>
+                    <div class="input-group">
+                      <input type="text" id="global_server_path" class="form-control" name="global_server_path"
+                        placeholder="/var/opt/servers" value="{{data['servers_dir']}}" directory>
+                      <div class="input-group-append">
+                        <span type="button" class="btn btn-outline-default custom-picker">/servers/</span>
+                      </div>
+                    </div>
+                  </div>
+                  <button class="btn btn-success" type="submit">Submit</button>&nbsp;<span id="submit-status"></span>
+                  <br>
+                  <span id="submit-list"></span>
+                </form>
+              </div>
+            </div>
+            <div class="col-md-6 col-sm-12 grid-margin stretch-card">
+              <div class="card">
+                <div class="card-body">
+                  <blockquote class="blockquote">
+                    <p class="mb-0">
+                      {% raw translate('serverConfigHelp', 'perms', data['lang']) %}
+                    </p>
+                  </blockquote>
+                </div>
+              </div>
+            </div>
+          </div>
+          {% end %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+</div>
+<div id="createButton" style="visibility: hidden;" data-backup-codes="{{
+  translate('otp', 'backupCodes', data['lang']) }}" data-copy-codes="{{
+    translate('otp', 'copyBackupCodes', data['lang']) }}"></div> <!-- just for translations -->
+
+<style>
+  .clickable {
+    color: var(--primary);
+  }
+
+  .clickable:hover {
+    cursor: pointer;
+  }
+
+  .custom-picker {
+    border: 1px solid var(--outline);
+  }
+
+  .loading:after {
+    overflow: hidden;
+    display: inline-block;
+    vertical-align: bottom;
+    -webkit-animation: ellipsis steps(4, end) 900ms infinite;
+    animation: ellipsis steps(4, end) 900ms infinite;
+    content: "\2026";
+    /* ascii code for the ellipsis character */
+    width: 0px;
+  }
+
+  @keyframes ellipsis {
+    to {
+      width: 1.25em;
+    }
+  }
+
+  @-webkit-keyframes ellipsis {
+    to {
+      width: 1.25em;
+    }
+  }
+</style>
+<!-- content-wrapper ends -->
+
+{% end %}
+
+{% block js %}
+<script>
+  const token = getCookie("_xsrf");
+
+  if (webSocket) {
+    webSocket.on('move_status', function (message) {
+      if (message === "done") {
+        $("#submit-list").removeClass("loading");
+        $("#submit-list").html("");
+        $("#submit-status").html('<i class="ph-bold ph-check"></i>');
+      } else {
+        $("#submit-status").html('<i class="ph ph-spinner-gap ph-spin"></i>');
+        $("#submit-list").text(message).html();
+        $("#submit-list").addClass("loading");
+      }
+    });
+  }
+
+  $("#server-path").submit(async function (e) {
+    const token = getCookie("_xsrf")
+    e.preventDefault();
+
+    $("#submit-status").html('<i class="ph ph-spinner-gap ph-spin"></i>');
+
+    let path = $("#global_server_path").val();
+    let res = await fetch(`/api/v2/crafty/config/servers_dir`, {
+      method: 'PATCH',
+      headers: {
+        'X-XSRFToken': token
+      },
+      body: JSON.stringify({ "new_dir": path }),
+    });
+    let responseData = await res.json();
+    if (responseData.status === "ok") {
+      return
+    } else {
+
+      bootbox.alert({
+        title: responseData.error,
+        message: responseData.error_data
+      });
+    }
+  });
+
+  $(document).ready(function () {
+    $('[data-toggle="popover"]').popover();
+    if ($(window).width() < 1000) {
+      $('.too_small').popover("show");
+      $('.too_small2').popover("show");
+    }
+
+  });
+  $(window).ready(function () {
+    $('body').click(function () {
+      $('.too_small').popover("hide");
+      $('.too_small2').popover("hide");
+    });
+  });
+  $(window).resize(function () {
+    // This will execute whenever the window is resized
+    if ($(window).width() < 1000) {
+      $('.too_small').popover("show");
+    }
+    else {
+      $('.too_small').popover("hide");
+    } // New width
+    if ($(window).width() < 1000) {
+      $('.too_small2').popover("show");
+    }
+    else {
+      $('.too_small2').popover("hide");
+    } // New width
+  });
+  $('#file').change(function () {
+    if ($('#file').val()) {
+      $('#upload-button').prop("disabled", false);
+    }
+  });
+</script>
+<script src="/static/assets/js/shared/backupCodes.js"></script>
+<script src="/static/assets/js/shared/userSettings.js"></script>
+
+{% end %}

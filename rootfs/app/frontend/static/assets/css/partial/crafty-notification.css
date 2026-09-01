@@ -1,0 +1,60 @@
+/**************************************************************/
+/* CSS for Notifications */
+/**************************************************************/
+.notifications {
+    position: fixed;
+    width: 200px;
+    top: 70px;
+    right: 0px;
+    z-index: 999;
+}
+
+.notification {
+    position: relative;
+    margin-right: 1rem;
+    background: var(--card-banner-bg);
+    -webkit-transition: right 0.75s, opacity 0.75s, top 0.75s;
+    -moz-transition: right 0.75s, opacity 0.75s, top 0.75s;
+    -o-transition: right 0.75s, opacity 0.75s, top 0.75s;
+    transition: right 0.75s, opacity 0.75s, top 0.75s;
+    right: -20rem;
+    opacity: 0.1;
+}
+
+.toast-header {
+    background-color: var(--card-banner-bg);
+    color: var(--base-text);
+}
+
+.toast-body {
+    background-color: var(--dropdown-bg);
+    color: var(--base-text);
+}
+
+.notification img {
+    max-height: 20px;
+}
+
+.notification strong {
+    line-height: 20px;
+}
+
+.notification.active {
+    right: 0rem;
+    opacity: 1;
+}
+
+.notification.remove {
+    right: 0rem;
+    opacity: 0.1;
+    top: -2rem;
+}
+
+.notification span {
+    line-height: 20px;
+    font-size: 15px;
+    user-select: none;
+    cursor: pointer;
+}
+
+/**************************************************************/

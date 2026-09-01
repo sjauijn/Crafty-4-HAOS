@@ -1,0 +1,17 @@
+configuration:
+  timezone:
+    name: Timezone
+    description: Timezone used by Crafty Controller and the game servers it manages.
+  ssl:
+    name: Use my own certificate
+    description: Enable to serve the direct access port over HTTPS using your own SSL certificate from Home Assistant's /ssl folder.
+  certfile:
+    name: Certificate file
+    description: Filename of the certificate in Home Assistant's /ssl folder, for example fullchain.pem.
+  keyfile:
+    name: Key file
+    description: Filename of the private key in Home Assistant's /ssl folder, for example privkey.pem.
+  data_location:
+    name: Data location
+  log_level:
+    name: Log level

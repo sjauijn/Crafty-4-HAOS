@@ -1,0 +1,17 @@
+configuration:
+  timezone:
+    name: Часовой пояс
+    description: Часовой пояс, используемый Crafty Controller и управляемыми игровыми серверами.
+  ssl:
+    name: Использовать свой сертификат
+    description: Включите, чтобы порт прямого доступа работал по HTTPS с использованием вашего собственного SSL-сертификата из папки /ssl .
+  certfile:
+    name: Файл сертификата
+    description: Имя файла сертификата в папке /ssl Home Assistant, например fullchain.pem.
+  keyfile:
+    name: Файл ключа
+    description: Имя файла приватного ключа в папке /ssl Home Assistant, например privkey.pem.
+  data_location:
+    name: Расположение данных
+  log_level:
+    name: Уровень логирования

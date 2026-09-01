@@ -1,0 +1,139 @@
+{% extends ../base.html %} {% block meta %} {% end %} {% block title %}Crafty
+Controller - {{ translate('serverDetails', 'serverDetails', data['lang']) }}{%
+end %} {% block content %}
+
+<link href="/static/assets/css/partial/crafty-files.css" rel="stylesheet">
+
+<div class="content-wrapper">
+    <!-- Page Title Header Starts-->
+    <div class="row page-title-header">
+        <div class="col-12">
+            <div class="page-header">
+                <h4 class="page-title">
+                    {{ translate('serverDetails', 'serverDetails', data['lang']) }} - {{
+                    data['server_stats']['server_id']['server_name'] }}
+                    <br />
+                    <small>UUID: {{ data['server_stats']['server_id']['server_id'] }}</small>
+                </h4>
+            </div>
+        </div>
+    </div>
+    <!-- Page Title Header Ends-->
+
+    {% include "parts/details_stats.html" %}
+
+    <div class="row">
+        <div class="col-sm-12 grid-margin">
+            <div class="card">
+                <div class="card-body pt-0">
+                    <span class="d-none d-sm-block">
+                        {% include "parts/server_controls_list.html %}
+                    </span>
+                    <span class="d-block d-sm-none">
+                        {% include "parts/m_server_controls_list.html %}
+                    </span>
+                    <div id="context-container" class="table-responsive">
+                        <div id="drop-zone">
+                            <div id="drop-zone-overlay">
+                                <i class="ph ph-cloud-arrow-up" id="drop-zone-img" style="scale: 10;"></i>
+                            </div>
+                            <div class="table-nav-container" id="table-nav-container"
+                                data-renameItemQuestion="{{translate('serverFiles', 'renameItemQuestion', data['lang'])}}"
+                                data-createDirQuestion="{{ translate('serverFiles', 'createDirQuestion', data['lang']) }}"
+                                data-createFileQuestion="{{translate('serverFiles', 'createFileQuestion', data['lang'])}}"
+                                data-deleteItemQuestion="{{translate('serverFiles', 'deleteItemQuestion', data['lang'])}}"
+                                data-deleteItemQuestionMessage="{{translate('serverFiles', 'deleteItemQuestionMessage', data['lang'])}}"
+                                data-yesDelete="{{translate('serverFiles', 'yesDelete', data['lang'])}}"
+                                data-noDelete="{{translate('serverFiles', 'noDelete', data['lang'])}}"
+                                data-clickUpload="{{translate('serverFiles', 'clickUpload', data['lang'])}}"
+                                data-uploadTitle="{{ translate('serverFiles', 'uploadTitle', data['lang'])}}"
+                                data-upload="{{ translate('serverFiles', 'upload', data['lang']) }}"
+                                data-load-more="{{translate('serverFiles', 'more', data['lang'])}}">
+                                <div id="table-nav" class="table-nav">
+                                </div>
+                                <br />
+                                <div id="table-nav-buttons" data-dir='{{translate("serverFiles", "createDir" ,
+                                    data["lang"])}}' data-file='{{translate("serverFiles", "createFile" ,
+                                    data["lang"])}}' data-upload='{{translate("serverFiles", "upload" ,
+                                    data["lang"])}}'>
+                                    <button id="create-dir" class="btn btn-info">Create
+                                        Directory</button>&nbsp;&nbsp;<button id="create-file"
+                                        class="btn btn-info">Create
+                                        File</button>&nbsp;&nbsp;<button id="upload-file" class="btn btn-info">Upload
+                                        File</button>
+                                </div>
+                            </div>
+                            <table class="table no-scroll animated-table" id="files_table"
+                                data-path="{{data['server_stats']['server_id']['path'] }}"
+                                data-delete="{{ translate('serverFiles', 'delete', data['lang']) }}" data-rename="{{
+                    translate('serverFiles', 'rename', data['lang']) }}" data-unzip="{{
+                    translate('serverFiles', 'unzip', data['lang']) }}" data-download="{{
+                    translate('serverFiles', 'download', data['lang']) }}" data-move='{{translate("serverFiles", "move" ,
+                                    data["lang"])}}' data-moving='{{translate("serverFiles", "moving" ,
+                                    data["lang"])}}' data-copy='{{translate("serverFiles", "copy" ,
+                                    data["lang"])}}' data-copying='{{translate("serverFiles", "copying" ,
+                                    data["lang"])}}' data-cancel='{{translate("serverFiles", "cancel" ,
+                                    data["lang"])}}'>
+                                <thead class="thead">
+                                    <tr>
+                                        <th scope="col" class="d-none d-sm-table-cell"><input class="root-select"
+                                                type="checkbox"></th>
+                                        <th scope="col">{{translate("serverFiles", "name" , data["lang"])}}</th>
+                                        <th class="d-none d-sm-table-cell" scope="col">{{translate("serverFiles", "type"
+                                            ,
+                                            data["lang"])}}</th>
+                                        <th class="d-none d-sm-table-cell" scope="col">{{translate("serverFiles",
+                                            "modified" ,
+                                            data["lang"])}}</th>
+                                        <th class="d-none d-sm-table-cell" scope="col">{{translate("serverFiles", "size"
+                                            ,
+                                            data["lang"])}}</th>
+                                        <th class="d-none d-sm-table-cell" scope="col">{{translate("serverFiles",
+                                            "permissions" ,
+                                            data["lang"])}}</th>
+                                        <th class="d-none d-sm-table-cell" scope="col">{{translate("serverFiles",
+                                            "options" ,
+                                            data["lang"])}}</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="files-table-body">
+                                </tbody>
+                            </table>
+                        </div>
+
+                    </div> <!--table div-->
+                </div> <!--card-body-->
+            </div> <!--card-->
+        </div> <!--col-sm-12-->
+    </div> <!--row-->
+</div> <!--content-wrapper-->
+<div id="file-status">
+    <span class="d-none d-sm-inline align-items-center">
+        &nbsp;{{ translate('serverFiles', 'operationStatus', data['lang'])
+        }}</span>&nbsp;<i class="ph ph-chart-line d-sm-none"></i>&nbsp;<span id="operation-total"></span><span
+        id="status-caret"><i class="ph ph-caret-up"></i></span>
+    <div id="file-status-content" class="d-none">
+        <br>
+        <div id="upload-progress-bar-parent">
+        </div>
+    </div>
+</div>
+
+
+{% include parts/context_menu.html %}
+{% end %} {% block js %}
+<script>
+    const serverId = new URLSearchParams(document.location.search).get("id");
+
+    $(document).ready(function () {
+        let rawDir = new URLSearchParams(document.location.search).get("dir"); //try to get dir from url
+        let dir = rawDir ? decodeURIComponent(rawDir) : ""; // if dir doesn't exist it's not requested thy get server root
+        const url = new URL(globalThis.location.href);
+        url.searchParams.delete("dir"); // clean up URL and remove DIR key in case they refresh
+        history.replaceState({}, "", url);
+        getTreeView(dir); //Get server ID as path. We should get root server dir back
+    })
+</script>
+<script src="/static/assets/js/shared/files.js"></script>
+<script src="/static/assets/js/shared/upload.js"></script>
+{% end %}

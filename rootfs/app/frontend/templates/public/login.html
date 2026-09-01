@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en" class="default">
+
+<head>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>Crafty Controller</title>
+  <!-- plugins:css -->
+  <link rel="stylesheet" href="/static/assets/vendors/mdi/css/materialdesignicons.min.css">
+  <link rel="stylesheet" href="/static/assets/vendors/flag-icon-css/css/flag-icon.min.css">
+  <link rel="stylesheet" href="/static/assets/vendors/ti-icons/css/themify-icons.css">
+  <link rel="stylesheet" href="/static/assets/vendors/typicons/typicons.css">
+  <link rel="stylesheet" href="/static/assets/css/login.css">
+  <link rel="stylesheet" href="/static/assets/vendors/css/vendor.bundle.base.css">
+  <link rel="manifest" href="/static/assets/crafty.webmanifest">
+
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <!-- <meta name="apple-mobile-web-app-title" content="Crafty Controller 4"> -->
+  <link rel="apple-touch-icon" href="/static/assets/images/Crafty_4-0.png">
+  <!-- endinject -->
+  <!-- Plugin css for this page -->
+  <!-- End Plugin css for this page -->
+  <!-- Layout styles -->
+  <link rel="stylesheet" href="/static/assest/css/internal/root.css">
+  <link rel="stylesheet" href="/static/assets/css/themes/default.css">
+  <link rel="stylesheet" href="/static/assets/css/base-style.css">
+  <link rel="stylesheet" href="/static/assets/css/crafty.css">
+  <link rel="stylesheet" href="/static/assets/css/partial/crafty-login_page.css">
+  <!-- End Layout styles -->
+  <link rel="shortcut icon" type="image/svg+xml" href="/static/assets/images/logo_small.svg">
+  <link rel="alternate icon" href="/static/assets/images/favicon.png" />
+</head>
+<style>
+  .auth.auth-bg-1 {
+    background: url("/static/assets/images/auth/{% raw data['background'] %}"),
+    url("/static/assets/images/auth/login_1.jpg");
+    background-size: cover;
+    background-position: center;
+  }
+</style>
+
+<body>
+  <div class="container-scroller">
+    <div class="container-fluid page-body-wrapper full-page-wrapper">
+      <div class="content-wrapper d-flex align-items-center auth auth-bg-1 theme-one">
+        <div class="row w-100">
+          <div class="col-lg-4 mx-auto">
+
+            <div id="login-form-background" class="auto-form-wrapper login-modal">
+              <div id="login_opacity" data-value="{{ data['login_opacity'] }}" hidden></div>
+              <div class="text-center auto-form-logo">
+                <img src="/static/assets/images/logo_long.svg">
+              </div>
+              <form id="login-form">
+                {% raw xsrf_form_html() %}
+                <div id="login-inputs"></div>
+                <div class="form-group">
+                  <div id="error-field" class="alert alert-danger" role="alert"></div>
+                </div>
+                <div class="form-group">
+                  <label class="label">{{ translate('login', 'username', data['lang']) }}</label>
+                  <div class="input-group">
+                    <input type="text" class="form-control login-text-input login-input"
+                      placeholder="{{ translate('login', 'username', data['lang']) }}" name="username" id="username"
+                      required="true">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="label">{{ translate('login', 'password', data['lang']) }}</label>
+                  <div class="input-group">
+                    <input type="password" class="form-control login-text-input login-input"
+                      placeholder="{{ translate('login', 'password', data['lang']) }}" name="password" id="password"
+                      required="true">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="label full-width" data-backupcode="{{ translate('login', 'backupCode', data['lang']) }}"
+                    data-2fa="{{ translate('login', 'totp', data['lang']) }}" id="multi-label"><span
+                      id="auth-code-label">{{
+                      translate('login', 'totp', data['lang']) }}</span>&nbsp;<span
+                      class="badge badge-pill badge-info">{{
+                      translate('login', '2fa', data['lang'])
+                      }}</span>
+                    <div class="input-group flex-container">
+                      <div id="totp_container">
+                        <input type="text" class="form-control login-text-input login-input" placeholder="000000"
+                          name="totp" id="totp">
+                      </div>
+                  </label>
+                  <select required class="form-control form-control-lg select-css" id="2fa-type" name="type">
+                    <option value="totp">{{ translate('login', 'totpSelect', data['lang']) }}</option>
+                    <option value="backup_code">{{ translate('login', 'backupCodeTitle', data['lang']) }}</option>
+                  </select>
+                </div>
+            </div>
+            <div class="form-group">
+              <button class="login-input btn btn-primary submit-btn btn-block">{{ translate('login', 'login',
+                data['lang']) }}</button>
+            </div>
+            <div id="passkey-section" class="form-group" style="display: none;">
+              <div class="text-center my-2">
+                <span class="text-muted">{{ translate('login', 'orSeparator', data['lang']) }}</span>
+              </div>
+              <button type="button" id="passkey-login-btn" class="btn btn-outline-primary btn-block">
+                <i class="mdi mdi-key"></i>&nbsp;{{ translate('login', 'signInWithPasskey', data['lang']) }}
+              </button>
+            </div>
+            <div class="form-group d-flex justify-content-between">
+              <div class="form-check form-check-flat mt-0">
+                &nbsp;
+              </div>
+              <button onclick="resetPass()" id="#resetPass" form=""
+                class="btn btn-outline-primary btn-sm forgot-password ">{{ translate('login', 'forgotPassword',
+                data['lang']) }}</button>
+            </div>
+
+            <div class="text-block text-center my-3">
+              <span class="text-small font-weight-semibold"><a href="https://craftycontrol.com/">Crafty Control</a>
+              </span>
+            </div>
+
+            <div class="text-block text-center my-3">
+              <a href="/status" class="text-small forgot-password">{{ translate('login', 'viewStatus',
+                data['lang']) }}</a>
+            </div>
+            </form>
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+    <!-- content-wrapper ends -->
+  </div>
+  <!-- page-body-wrapper ends -->
+  </div>
+  <!-- container-scroller -->
+  <!-- plugins:js -->
+  <script src="/static/assets/vendors/js/vendor.bundle.base.js"></script>
+  <!-- endinject -->
+  <!-- inject:js -->
+  <script src="/static/assets/js/shared/off-canvas.js"></script>
+  <script src="/static/assets/js/shared/hoverable-collapse.js"></script>
+  <script src="/static/assets/js/shared/misc.js"></script>
+  <script src="/static/assets/js/shared/settings.js"></script>
+  <script src="/static/assets/js/shared/todolist.js"></script>
+  <script src="/static/assets/vendors/js/bootbox.min.js"></script>
+  <script src="/static/assets/js/shared/passkey.js"></script>
+  <!-- endinject -->
+  <script>
+
+    $(document).ready(function () {
+      let login_opacity_div = document.getElementById('login_opacity');
+      let opacity = login_opacity_div.getAttribute('data-value');
+      document.getElementById('login-form-background').style.background = 'rgb(34, 36, 55, ' + (opacity / 100) + ')';
+      //Register Service worker for mobile app
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/static/assets/js/shared/service-worker.js', { scope: '/' })
+          .then(function (registration) {
+            console.log('Service Worker Registered');
+          });
+      }
+    });
+    async function resetPass() {
+      let res = await fetch(`/api/v2/crafty/resetPass/`, {
+        method: 'GET',
+      });
+      let responseData = await res.json();
+      console.log(responseData);
+      bootbox.alert(responseData.data)
+
+    }
+    $("#2fa-type").on("change", function () {
+      if ($("#2fa-type").val() === "backup_code") {
+        $("#auth-code-label").html($("#multi-label").data("backupcode"))
+        $("#totp").attr("placeholder", "ABCD-EFGH-IJKL-MNOP")
+      } else {
+        $("#totp").attr("placeholder", "000000")
+        $("#auth-code-label").html($("#multi-label").data("2fa"))
+      }
+    })
+    $("#login-form").on("submit", async function (e) {
+      e.preventDefault();
+      let loginForm = document.getElementById("login-form");
+
+      let formData = new FormData(loginForm);
+
+      //Create an object from the form data entries
+      let formDataObject = Object.fromEntries(formData.entries());
+      let body = {
+        "username": formDataObject.username,
+        "password": (formDataObject.password).toString(),
+      }
+      if (formDataObject.totp != "") {
+        let key = $("#2fa-type").val();
+        body = {
+          "username": formDataObject.username,
+          "password": (formDataObject.password).toString(),
+          [key]: formDataObject.totp,
+        }
+      }
+      let res = await fetch(`/api/v2/auth/login/`, {
+        method: 'POST',
+        headers: {
+          'X-XSRFToken': formDataObject._xsrf,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(body),
+      });
+      let responseData = await res.json();
+      if (responseData.status === "ok") {
+        if (responseData.data.warning) {
+          bootbox.alert({
+            message: responseData.data.warning,
+            callback: function () {
+              console.log("message answered");
+              // Redirect after the alert is acknowledged
+              location.href = responseData.data.page;
+            }
+          });
+        } else {
+          // Redirect immediately if no warning
+          location.href = responseData.data.page;
+        }
+      } else if (responseData.cooldown_time) {
+        $("#error-field").empty().text(responseData.error_data + " ").append($('<span id="cooldown"></span>').text(responseData.cooldown_time));
+        let time_array = String(responseData.cooldown_time).split(":")
+        startCountdown(time_array[0], time_array[1]);
+      } else {
+        $("#error-field").text(responseData.error_data);
+      }
+    });
+    function startCountdown(minutes, seconds) {
+      let totalSeconds = parseInt(minutes) * 60 + parseInt(seconds);
+      const interval = setInterval(() => {
+        const mins = Math.floor(totalSeconds / 60);
+        const secs = totalSeconds % 60;
+        const formattedTime = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        $("#cooldown").html(formattedTime);
+
+        // Stop timer at 0
+        if (totalSeconds === 0) {
+          clearInterval(interval);
+          $("#error-field").html("")
+        }
+
+        totalSeconds--;
+      }, 1000);
+    }
+
+    // Passkey authentication - base64URLToBuffer and bufferToBase64URL loaded from passkey.js
+
+    async function checkPasskeySupport() {
+      if (globalThis.PublicKeyCredential &&
+          PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable) {
+        try {
+          // Check if passkey is enabled on server
+          const configCheck = await fetch('/api/v2/auth/passkey/login/options/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({}),
+          });
+          const config = await configCheck.json();
+          if (config.status === 'ok') {
+            document.getElementById('passkey-section').style.display = 'block';
+          }
+        } catch (e) {
+          console.log('Passkey check failed:', e);
+        }
+      }
+    }
+
+    document.getElementById('passkey-login-btn').addEventListener('click', async function() {
+      const loginFailedMsg = '{{ translate("passkey", "loginFailed", data["lang"]) }}';
+      const authFailedMsg = '{{ translate("passkey", "authFailed", data["lang"]) }}';
+      try {
+        const optionsRes = await fetch('/api/v2/auth/passkey/login/options/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({}),
+        });
+
+        if (!optionsRes.ok) {
+          $('#error-field').text(loginFailedMsg);
+          return;
+        }
+
+        const optionsData = await optionsRes.json();
+        if (optionsData.status !== 'ok') {
+          $('#error-field').text(optionsData.error_data || loginFailedMsg);
+          return;
+        }
+
+        const options = optionsData.data.options;
+        options.challenge = base64URLToBuffer(options.challenge);
+        if (options.allowCredentials) {
+          options.allowCredentials = options.allowCredentials.map(cred => ({
+            ...cred,
+            id: base64URLToBuffer(cred.id),
+          }));
+        }
+
+        const credential = await navigator.credentials.get({ publicKey: options });
+
+        const verifyRes = await fetch('/api/v2/auth/passkey/login/verify/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            challenge_id: optionsData.data.challenge_id,
+            credential: {
+              id: credential.id,
+              rawId: bufferToBase64URL(credential.rawId),
+              type: credential.type,
+              response: {
+                authenticatorData: bufferToBase64URL(credential.response.authenticatorData),
+                clientDataJSON: bufferToBase64URL(credential.response.clientDataJSON),
+                signature: bufferToBase64URL(credential.response.signature),
+                userHandle: credential.response.userHandle ?
+                    bufferToBase64URL(credential.response.userHandle) : null,
+              },
+            },
+          }),
+        });
+
+        if (!verifyRes.ok && verifyRes.status >= 500) {
+          $('#error-field').text(authFailedMsg);
+          return;
+        }
+
+        const verifyData = await verifyRes.json();
+        if (verifyData.status === 'ok') {
+          location.href = verifyData.data && verifyData.data.page ? verifyData.data.page : '/panel/dashboard';
+        } else {
+          $('#error-field').text(verifyData.error_data || authFailedMsg);
+        }
+      } catch (e) {
+        if (e.name === 'SecurityError' || e.name === 'NotSupportedError') {
+          $('#error-field').text('{{ translate("passkey", "insecureContext", data["lang"]) }}');
+        } else if (e.name === 'NotAllowedError') {
+          $('#error-field').text('{{ translate("passkey", "cancelled", data["lang"]) }}');
+        } else {
+          console.error('Passkey error:', e);
+          $('#error-field').text(authFailedMsg + ': ' + e.message);
+        }
+      }
+    });
+
+    // Check passkey support on page load
+    $(document).ready(function() {
+      checkPasskeySupport();
+    });
+  </script>
+  <style>
+    .modal-content {
+      background-color: rgb(34, 36, 55) !important;
+      color: lightgray;
+      text-align: center;
+    }
+  </style>
+</body>
+
+</html>

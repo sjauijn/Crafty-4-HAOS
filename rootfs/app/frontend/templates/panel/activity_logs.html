@@ -1,0 +1,160 @@
+{% extends ../base.html %}
+
+{% block meta %}
+{% end %}
+
+{% block title %}Crafty Controller - Activity Logs{% end %}
+
+{% block content %}
+
+<div class="content-wrapper">
+
+  <!-- Page Title Header Starts-->
+  <div class="row page-title-header">
+    <div class="col-12">
+      <div class="page-header">
+        <h4 class="page-title">Activity Logs</h4>
+      </div>
+    </div>
+
+  </div>
+  <!-- Page Title Header Ends-->
+  <div class="row">
+    <div class="col-md-12 col-lg-12 grid-margin stretch-card">
+      <div class="card">
+        <div class="card-header header-sm d-flex justify-content-between align-items-center">
+          <h4 class="card-title"><i class="ph-bold ph-clock-counter-clockwise"></i> &nbsp;Audit Logs</h4>
+          {% if data['user_data']['hints'] %}
+          <span class="too_small" title="{{ translate('dashboard', 'cannotSeeOnMobile', data['lang']) }}" ,
+            data-content="{{ translate('dashboard', 'cannotSeeOnMobile2', data['lang']) }}" ,
+            data-placement="top"></span>
+          {% end %}
+        </div>
+        <div class="card-body">
+
+          <div class="table-responsive">
+            <table class="table table-hover w-100" id="audit_table">
+              <thead>
+                <tr class="rounded">
+                  <th>Time</th>
+                  <th>Username</th>
+                  <th>Action</th>
+                  <th>Server ID</th>
+                  <th>IP</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td colspan="5" id="image-div" class="text-center"> <!-- Center image within table -->
+                    <img class="img-center" id="logo-animate" src="/static/assets/images/crafty-logo-square-1024.png"
+                      alt="Crafty Logo, Crafty is loading" width="20%"><br><br>{{ translate('datatables',
+                    'loadingRecords', data['lang'])}}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- content-wrapper ends -->
+
+{% end %}
+
+{% block js %}
+<script>
+  $(document).ready(function () {
+    $('[data-toggle="popover"]').popover();
+    if ($(window).width() < 1000) {
+      $('.too_small').popover("show");
+    }
+
+  });
+  $(window).ready(function () {
+    $('body').click(function () {
+      $('.too_small').popover("hide");
+    });
+  });
+  $(window).resize(function () {
+    // This will execute whenever the window is resized
+    if ($(window).width() < 1000) {
+      $('.too_small').popover("show");
+    }
+    else {
+      $('.too_small').popover("hide");
+    } // New width
+  });
+
+  $(document).ready(function () {
+    console.log('ready for JS!')
+    // Initialize DataTables
+    // Load initial data
+    getActivity();
+  });
+
+  function updateActivity(data) {
+    let tbody = $('#audit_table tbody');
+    tbody.empty(); // Clear existing rows
+    $.each(data, function (index, value) {
+      let row = $('<tr>');
+      row.append(`<td>${value.time}</td>`);
+      if (value.user_name != "system" && value.user_id != "-1") {
+        row.append(`<td><a href="/panel/edit_user?id=${value.user_id}">${value.user_name}</a></td>`);
+      } else {
+        row.append(`<td>${value.user_name}</td>`);
+      }
+      row.append(`<td>${value.log_msg}</td>`);
+      row.append(`<td>${value.server_id}</td>`);
+      row.append(`<td>${value.source_ip}</td>`);
+      tbody.append(row);
+    });
+    $('#audit_table').DataTable({
+      'order': [[0, 'desc']], // Sort by the first column in descending order
+      filter: true,
+      "searching": true,
+    })
+  }
+
+  async function getActivity() {
+    var token = getCookie("_xsrf");
+    let res = await fetch(`/api/v2/crafty/logs/audit`, {
+      method: 'GET',
+      headers: {
+        'X-XSRFToken': token
+      },
+    });
+    let responseData = await res.json();
+    console.log(responseData);
+    if (responseData.status === "ok") {
+      updateActivity(responseData.data);
+      console.log("activity update")
+    } else {
+      bootbox.alert(responseData.error_data)
+    }
+  }
+
+  function rotateImage(degree) {
+    $('#logo-animate').animate({ transform: degree }, {
+      step: function (now, fx) {
+        $(this).css({
+          '-webkit-transform': 'rotate(' + now + 'deg)',
+          '-moz-transform': 'rotate(' + now + 'deg)',
+          'transform': 'rotate(' + now + 'deg)'
+        });
+      }
+    });
+    setTimeout(function () {
+      rotateImage(360);
+    }, 2000);
+  }
+  $(document).ready(function () {
+    setTimeout(function () {
+      rotateImage(360);
+    }, 2000);
+  });
+</script>
+
+{% end %}

@@ -1,0 +1,395 @@
+{% extends ../base.html %}
+
+{% block title %}Crafty Controller - {{ translate('serverWizard', 'newServer', data['lang']) }}{% end %}
+<meta http-equiv="Pragma" content="no-cache">
+{% block content %}
+<link rel="stylesheet" href="/static/assets/css/vendors/bootstrap-select-1.13.18.css">
+<div class="content-wrapper" id="creation-wrapper"
+  data-importing="{{translate('serverWizard', 'importing', data['lang'])}}"
+  data-downloading="{{translate('serverWizard', 'downloading', data['lang'])}}"
+  data-bePatient="{{translate('serverWizard', 'bePatient', data['lang'])}}"
+  data-eulaTitle="{{translate('error', 'eulaTitle', data['lang'])}}"
+  data-eulaMsg="{{translate('error', 'eulaMsg', data['lang'])}}"
+  data-privMsg="{{translate('error', 'privMsg', data['lang'])}}"
+  data-agree="{{translate('error', 'agree', data['lang'])}}"
+  data-cancel="{{translate('error', 'cancel', data['lang'])}}">
+  <ul class="nav nav-pills tab-simple-styled " role="tablist">
+    <li class="nav-item term-nav-item">
+      <a class="nav-link" href="/server/step1" role="tab" aria-selected="false">
+        <i class="ph-fill ph-file-text"></i>Minecraft-Java</a>
+    </li>
+    <li class="nav-item term-nav-item">
+      <a class="nav-link active" href="/server/bedrock_step1" role="tab" aria-selected="false">
+        <i class="ph-fill ph-file-text"></i>Minecraft-Bedrock</a>
+    </li>
+    <li class="nav-item term-nav-item">
+      <a class="nav-link" href="/server/hytale_step1" role="tab" aria-selected="false">
+        <i class="ph-fill ph-file-text"></i>Hytale</a>
+    </li>
+    {% if data.get("experimental") %}
+    <li class="nav-item term-nav-item">
+      <a class="nav-link" href="/server/steam_cmd_step1" role="tab" aria-selected="false">
+        <i class="ph-fill ph-file-text"></i>Steam-CMD&nbsp;<span id="steam-badge"
+          title="{{translate('serverWizard', 'experimentalFeature', data['lang'])}}" class="text-primary"><i
+            class="ph ph-flask"></i></span></a>
+    </li>
+    {% end %}
+  </ul>
+  <div class="d-none" id="overlay" onclick="hide(event)"></div>
+  <div class="row">
+    <div class="col-sm-6 grid-margin stretch-card">
+      <div class="card">
+        <div class="card-body">
+
+          <h4>{{ translate('serverWizard', 'newServer', data['lang']) }}</h4>
+          <br />
+
+          <form method="post" id="download_exe" name="create_server" class="server-wizard">
+            {% if data["server_api"] and data["online"] %}
+            <fieldset>
+              {% else %}
+              <fieldset disabled="disabled">
+                </style>
+                {% end %}
+                <div class="form-group">
+                  <label for="server_name">{{ translate('serverWizard', 'serverName', data['lang']) }}</label>
+                  <input type="text" class="form-control" id="server_name" name="name"
+                    placeholder="{{ translate('serverWizard', 'myNewServer', data['lang']) }}" required>
+                </div>
+
+                <div class="form-group">
+                  <p class="mb-0 p-0" aria-expanded="true">{{ translate('serverWizard', 'addRole', data['lang']) }}
+                    <small class="text-none"> - {{ translate('serverWizard', 'autoCreate', data['lang']) }}</small>
+                  </p>
+                  {% include "../panel/parts/role_select.html" %}
+                </div>
+                <button onclick="eula_confirm()" type="button" class="btn btn-primary mr-2">{{ translate('serverWizard',
+                  'buildServer',
+                  data['lang']) }}</button>
+                <button type="reset" class="btn btn-danger mr-2">{{ translate('serverWizard', 'resetForm', data['lang'])
+                  }}</button>
+              </fieldset>
+              {% if not data["server_api"] and data["online"] %}
+              <div class="api-alert">
+                <p><i class="ph-fill ph-warning"></i>&nbsp;{{ translate('error', 'bedrockError', data['lang'])
+                  }}<a href="https://status.craftycontrol.com/status/craftycontrol" target="_blank"
+                    rel="noopener noreferrer">&nbsp;{{ translate('error', 'craftyStatus', data['lang']) }}</a>
+                  &nbsp;{{ translate('error', 'serverJars2', data['lang']) }}</p>
+              </div>
+              {% end %}
+              {% if not data["online"] %}
+              <div class="api-alert">
+                <p><i class="ph-fill ph-warning"></i>&nbsp;{{ translate('error', 'noInternet', data['lang']) }}
+                </p>
+              </div>
+              {% end %}
+        </div>
+        </form>
+      </div>
+    </div>
+    <div class="col-md-6 grid-margin stretch-card">
+      <div class="card">
+        <div class="card-body">
+
+          <h4>{{ translate('serverWizard', 'uploadZip', data['lang']) }}</h4>
+          <br />
+          <p class="card-description">
+
+          <form name="zip" id="import-upload" method="post" class="server-wizard">
+
+            <div class="form-group">
+              <label for="server_name">{{ translate('serverWizard', 'serverName', data['lang']) }}</label>
+              <input type="text" class="form-control" id="server_name_upload" name="name" value=""
+                placeholder="{{ translate('serverWizard', 'myNewServer', data['lang']) }}" required>
+            </div>
+
+            <div class="form-group">
+              <label for="server">Server Upload </label>
+              <div id="upload_input" class="input-group">
+                <div class="custom-file">
+                  <input type="file" multiple="false" class="custom-file-input" id="file" name="file" required>
+                  <label id="fileLabel" class="custom-file-label" for="file">{{ translate('serverWizard',
+                    'labelZipFile', data['lang']) }}</label>
+                </div>
+                <div class="input-group-append">
+                  <button type="button" class="btn btn-info upload-button" id="upload-button"
+                    onclick="uploadFile('import')" disabled>{{ translate('serverWizard',
+                    'uploadButton', data['lang']) }}</button>
+                </div>
+              </div>
+            </div>
+            <div id="lower_half" class="d-none"
+              data-loading='{{translate("serverFiles", "loadingRecords", data["lang"])}}'>
+              <div class="form-group">
+                <label for="server">{{ translate('serverWizard', 'selectRoot', data['lang']) }} <small>{{
+                    translate('serverWizard', 'explainRoot', data['lang']) }}</small></label>
+                <br>
+                <button class="btn btn-primary mr-2" id="root_upload_button" type="button">{{
+                  translate('serverWizard', 'clickRoot', data['lang']) }}</button>
+              </div>
+
+
+              <div class="form-group">
+                <label for="server_jar">{{ translate('serverWizard', 'serverJar', data['lang']) }}</label>
+                <input type="text" class="form-control" id="server_jar" name="server_jar" value=""
+                  placeholder="paper.jar" required>
+              </div>
+
+              <h4 class="card-title">{{ translate('serverWizard', 'quickSettings', data['lang']) }} <small
+                  class="text-none"> - {{ translate('serverWizard', 'quickSettingsDescription',
+                  data['lang']) }}</small></h4>
+              <hr>
+
+              <div class="form-group">
+                <label for="port3">{{ translate('serverWizard', 'serverPort', data['lang']) }} <small> - {{
+                    translate('serverWizard', 'defaultPort', data['lang']) }}</small></label>
+                <input type="number" class="form-control" id="port4" name="port" value="19132" step="1" min="1"
+                  max="65535" required>
+              </div>
+
+              <div class="form-group">
+                <p class="mb-0 p-0" aria-expanded="true">{{ translate('serverWizard', 'addRole', data['lang'])
+                  }}
+                  <small class="text-none"> - {{ translate('serverWizard', 'autoCreate',
+                    data['lang']) }}</small>
+                </p>
+                {% include "../panel/parts/role_select.html" %}
+              </div>
+              <div class="modal fade" id="dir_upload_select" tabindex="-1" role="dialog" aria-labelledby="dir_select"
+                aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h5 class="modal-title" id="exampleModalLongTitle">{{ translate('serverWizard',
+                        'selectZipDir', data['lang']) }}</h5>
+                      <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                      </button>
+                    </div>
+                    <div class="modal-body">
+                      <div class="tree-ctx-item overflow-scroll mh-75" id="main-tree-div" data-path="">
+                        <input type="radio" class="root-input" id="main-tree-input-upload" name="root_path" value=""
+                          checked>
+                        <span id="main-tree" class="files-tree-title tree-caret-down root-dir" data-path="">
+                          <i class="ph-fill ph-folder"></i>
+                          <i class="ph-fill ph-folder-open"></i>
+                          {{ translate('serverFiles', 'files', data['lang']) }}
+                        </span>
+                        </input>
+                      </div>
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-secondary" data-dismiss="modal">{{
+                        translate('serverWizard', 'close', data['lang']) }}</button>
+                      <button type="button" id="modal-okay" data-dismiss="modal" class="btn btn-primary">{{
+                        translate('serverWizard', 'save', data['lang']) }}</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <button id="upload_submit" type="submit" title="You must select server root dir first" disabled
+                class="btn btn-primary mr-2">{{ translate('serverWizard', 'importServerButton', data['lang'])
+                }}</button>
+              <button type="button" class="btn btn-danger mr-2 tree-reset">{{ translate('serverWizard', 'resetForm',
+                data['lang'])
+                }}</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<link rel="stylesheet" href="/static/assets/css/partial/crafty-wizard.css">
+
+{% end %}
+
+{% block js%}
+<script src="/static/assets/js/shared/upload.js"></script>
+<script>
+
+  function eula_confirm() {
+    bootbox.confirm({
+      title: `${$("#creation-wrapper").attr("data-eulaTitle")}`,
+      message: `${$("#creation-wrapper").attr("data-eulaMsg")}<a href='https://www.minecraft.net/en-us/eula' target='_blank'>Minecraft EULA</a>&nbsp; ${$("#creation-wrapper").attr("data-privMsg")}<a target='_blank' href='https://privacy.microsoft.com/en-us/privacystatement'>Microsoft Privacy Policy</a>`,
+      buttons: {
+        confirm: {
+          label: `${$("#creation-wrapper").attr("data-agree")}`,
+          className: 'btn-info'
+        },
+        cancel: {
+          label: `${$("#creation-wrapper").attr("data-cancel")}`,
+          className: 'btn-secondary'
+        }
+      },
+      callback: function (result) {
+        if (result == true) {
+          $("#download_exe").submit();
+        }
+        else {
+          return;
+        }
+      }
+    })
+  }
+</script>
+<script>
+  $("#steam_link").mouseenter(function () {
+    $('[data-toggle="popover"]').popover();
+    $('.missing').popover("show");
+  })
+  $("#steam_link").mouseleave(function () {
+    $('.missing').popover("hide");
+  });
+  $(".tree-reset").on("click", function () {
+    location.href = "/server/bedrock_step1";
+  });
+</script>
+
+<script>
+
+  function wait_msg(importing) {
+    bootbox.alert({
+      title: importing ? `${$("#creation-wrapper").attr("data-importing")}` : `${$("#creation-wrapper").attr("data-downloading")}`,
+      message: `<i class="ph-fill ph-cloud-arrow-down"></i> ${$("#creation-wrapper").attr("data-bePatient")}`,
+      className: "waitMsg",
+    });
+  }
+  $('#file').change(function () {
+    console.log("File changed");
+    if ($('#file').val()) {
+      $('#upload-button').prop("disabled", false);
+      document.getElementById("fileLabel").innerHTML = $('#file').val().split('\\').pop().split('/').pop();
+      console.log("File changed good");
+    }
+  });
+  function replacer(key, value) {
+    if (key === "roles" || key === "archive_internal_path") {
+      return value
+    }
+    if (key != "ignored_exits") {
+      if (typeof value == "boolean" || key === "host" || key === "version") {
+        return value
+      } else {
+        return (isNaN(value) ? value : +value);
+      }
+    } else {
+      return value;
+    }
+  }
+  function calcRoles() {
+    var combinedValues = [];
+    $('.roles_select').each(function () {
+      var selectedValues = $(this).val();
+      console.log(selectedValues)
+      if (selectedValues) {
+        combinedValues = combinedValues.concat(selectedValues);
+      }
+    });
+    return combinedValues;
+  }
+  async function send_server(data) {
+    let token = getCookie("_xsrf")
+    console.log(token)
+    let res = await fetch(`/api/v2/servers/`, {
+      method: 'POST',
+      headers: {
+        'X-XSRFToken': token
+      },
+      body: data,
+    });
+    let responseData = await res.json();
+    if (responseData.status === "ok") {
+      window.location.href = '/panel/dashboard';
+    } else {
+      // Close the "be patient..." dialogue box
+      $('.bootbox-close-button').click();
+      // Alert the user that there was an issue.
+      bootbox.alert({
+        title: responseData.error,
+        message: responseData.error_data
+      });
+    }
+  }
+  $(document).ready(function () {
+
+    $("#download_exe").on("submit", async function (e) {
+      wait_msg();
+      e.preventDefault();
+      let jarForm = document.getElementById("download_exe");
+
+      let formData = new FormData(jarForm);
+      //Create an object from the form data entries
+      let formDataObject = Object.fromEntries(formData.entries());
+      console.log(formDataObject);
+      let send_data = {
+        "name": formDataObject.name,
+        "roles": calcRoles(),
+        "monitoring_type": "minecraft_bedrock",
+        "minecraft_bedrock_monitoring_data": {
+          "host": "127.0.0.1",
+          "port": 19132
+        },
+        "create_type": "minecraft_bedrock",
+        "minecraft_bedrock_create_data": {
+          "create_type": "download_exe",
+          "download_exe_create_data": {
+            //agree to eula since we confirmed before calling this function
+            "agree_to_eula": true,
+          }
+        }
+      }
+      console.log(send_data);
+      // Format the plain form data as JSON
+      let formDataJsonString = JSON.stringify(send_data, replacer);
+
+
+      console.log(formDataJsonString);
+      send_server(formDataJsonString);
+    });
+
+    $("#import-upload").on("submit", async function (e) {
+      wait_msg(true);
+      e.preventDefault();
+      let jarForm = document.getElementById("import-upload");
+
+      let formData = new FormData(jarForm);
+      //Create an object from the form data entries
+      let formDataObject = Object.fromEntries(formData.entries());
+      console.log(formDataObject);
+      var checkedRadio = $('.root-input:checked');
+      let zip_root_path = ""
+      if (checkedRadio.length > 0) {
+        // Get the value of the checked radio button
+        var checkedValue = checkedRadio.val();
+        zip_root_path = checkedValue; // Return the checked value if needed
+      }
+      let send_data = {
+        "name": formDataObject.name,
+        "roles": calcRoles(),
+        "monitoring_type": "minecraft_bedrock",
+        "minecraft_bedrock_monitoring_data": {
+          "host": "127.0.0.1",
+          "port": formDataObject.port
+        },
+        "create_type": "minecraft_bedrock",
+        "minecraft_bedrock_create_data": {
+          "create_type": "import_server",
+          "import_server_create_data": {
+            "archive_name": $("#file-uploaded").val(),
+            "archive_internal_path": zip_root_path,
+            "executable": formDataObject.server_jar,
+          }
+        }
+      }
+      console.log(send_data);
+      // Format the plain form data as JSON
+      let formDataJsonString = JSON.stringify(send_data, replacer);
+      send_server(formDataJsonString);
+    });
+
+  });
+</script>
+<script type="text/javascript" src="/static/assets/js/shared/root-dir.js"></script>
+<script src="/static/assets/js/shared/bootstrap-select-1.13.18.js"></script>
+{% end %}

@@ -1,0 +1,386 @@
+{% extends ../base.html %}
+
+{% block meta %}
+{% end %}
+
+{% block title %}Crafty Controller - {{ translate('userConfig', 'passkeyHeader', data['lang']) }}{% end %}
+
+{% block content %}
+<div class="content-wrapper">
+
+    <!-- Page Title Header Starts-->
+    <div class="row page-title-header">
+        <div class="col-12">
+            <div class="page-header">
+                <h4 class="page-title">
+                    {{ translate('userConfig', 'passkeyHeader', data['lang']) }} - {{ data['user']['user_id'] }}
+                    <br />
+                    <small>UID: {{ data['user']['user_id'] }}</small>
+                </h4>
+            </div>
+        </div>
+
+    </div>
+    <!-- Page Title Header Ends-->
+
+    <div class="row">
+
+        <div class="col-sm-12 grid-margin">
+            <div class="card">
+                <div class="card-body  pt-0">
+                    <ul class="nav nav-tabs col-md-12 tab-simple-styled ">
+                        <li class="nav-item">
+                            <a class="nav-link" href="/panel/edit_user?id={{ data['user']['user_id'] }}&subpage=config"
+                                role="tab" aria-selected="false">
+                                <i class="ph-fill ph-gear"></i>{{ translate('userConfig', 'config', data['lang']) }}</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/panel/edit_user_apikeys?id={{ data['user']['user_id'] }}"
+                                role="tab" aria-selected="false">
+                                <i class="ph-fill ph-key"></i>{{ translate('apiKeys', 'apiKeys', data['lang']) }}</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/panel/edit_user_otp?id={{ data['user']['user_id'] }}"
+                                role="tab" aria-selected="false">
+                                <i class="ph-fill ph-shield"></i>{{ translate('userConfig', 'totpHeader',
+                                data['lang']) }}</a>
+                        </li>
+                        {% if data['passkey_enabled'] %}
+                        <li class="nav-item">
+                            <a class="nav-link active" href="/panel/edit_user_passkey?id={{ data['user']['user_id'] }}"
+                                role="tab" aria-selected="true">
+                                <i class="ph-fill ph-fingerprint-simple"></i>{{ translate('userConfig', 'passkeyHeader',
+                                data['lang']) }}</a>
+                        </li>
+                        {% end %}
+                    </ul>
+
+                    <div class="row">
+                        <div class="col-md-12 col-sm-12">
+                            <div class="card">
+                                <div class="card-header header-sm d-flex justify-content-between align-items-center">
+                                    <h4 class="card-title"><i class="ph-fill ph-fingerprint-simple"></i>&nbsp;{{ translate('passkey',
+                                        'passkeyTitle',
+                                        data['lang']) }}</h4>
+                                    <div>
+                                        <button class="btn btn-primary" id="createPasskeyButton"
+                                            data-new-name="{{ translate('passkey', 'newName', data['lang']) }}"
+                                            data-register-title="{{ translate('passkey', 'registerTitle', data['lang']) }}">
+                                            <i class="ph-fill ph-plus-circle"></i>
+                                            &nbsp;{{ translate('passkey', 'newPasskey', data['lang']) }}
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="form-group">
+                                        <div class="table-responsive">
+                                            <table id="passkey-table" class="table table-hover">
+                                                <thead>
+                                                    <tr class="rounded">
+                                                        <th>{{ translate('passkey', 'name', data['lang']) }}</th>
+                                                        <th>{{ translate('passkey', 'deviceType', data['lang']) }}</th>
+                                                        <th>{{ translate('passkey', 'createdAt', data['lang']) }}</th>
+                                                        <th>{{ translate('passkey', 'lastUsed', data['lang']) }}</th>
+                                                        <th>{{ translate('passkey', 'actions', data['lang']) }}</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for passkey in data['passkeys'] %}
+                                                    <tr id="{{ passkey['id'] }}">
+                                                        <td>
+                                                            <span>
+                                                                {{ passkey['name'] }}
+                                                                {% if passkey['backed_up'] %}
+                                                                <i class="ph-fill ph-cloud" title="{{ translate('passkey', 'backedUp', data['lang']) }}"></i>
+                                                                {% end %}
+                                                            </span>
+                                                        </td>
+                                                        <td>{{ passkey['device_type'] }}</td>
+                                                        <td>{{ passkey['created_at'] }}</td>
+                                                        <td>{{ passkey['last_used_at'] if passkey['last_used_at'] else translate('passkey', 'never', data['lang']) }}</td>
+                                                        <td>
+                                                            <button class="btn btn-danger delete-passkey"
+                                                                data-passkey-id="{{ passkey['id'] }}"
+                                                                data-passkey-name="{{ passkey['name'] }}"
+                                                                data-delete-warn="{{ translate('passkey', 'deleteConfirm', data['lang']) }}"
+                                                                data-yes="{{ translate('passkey', 'yes', data['lang']) }}"
+                                                                data-no="{{ translate('passkey', 'no', data['lang']) }}">
+                                                                {{ translate('passkey', 'delete', data['lang']) }}
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                    {% end %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Password Authentication Settings -->
+                    <div class="row mt-4">
+                        <div class="col-md-12 col-sm-12">
+                            <div class="card">
+                                <div class="card-header header-sm">
+                                    <h4 class="card-title"><i class="ph-fill ph-lock"></i>&nbsp;{{ translate('passkey',
+                                        'disablePasswordAuth',
+                                        data['lang']) }}</h4>
+                                </div>
+                                <div class="card-body">
+                                    <div class="form-group">
+                                        <p class="text-muted">{{ translate('passkey', 'disablePasswordAuthDesc', data['lang']) }}</p>
+                                        {% if not data['has_passkeys'] %}
+                                        <div class="alert alert-warning">
+                                            <i class="ph-fill ph-warning"></i>&nbsp;
+                                            {{ translate('passkey', 'requiresPasskey', data['lang']) }}
+                                        </div>
+                                        {% end %}
+                                        <div class="form-check form-check-flat form-check-primary">
+                                            <label class="form-check-label">
+                                                <input type="checkbox" class="form-check-input" id="disablePasswordAuth"
+                                                    {% if data['disable_password_auth'] %}checked{% end %}
+                                                    {% if not data['has_passkeys'] %}disabled{% end %}>
+                                                {{ translate('passkey', 'disablePasswordAuth', data['lang']) }}
+                                            </label>
+                                        </div>
+                                        {% if data['has_passkeys'] %}
+                                        <small class="text-warning mt-2 d-block">
+                                            <i class="ph-fill ph-warning"></i>&nbsp;
+                                            {{ translate('passkey', 'disablePasswordAuthWarning', data['lang']) }}
+                                        </small>
+                                        {% end %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+<!-- content-wrapper ends -->
+
+{% end %}
+
+{% block js %}
+<script src="/static/assets/js/shared/passkey.js"></script>
+<script>
+    const userId = new URLSearchParams(document.location.search).get('id');
+    const token = getCookie("_xsrf");
+    const errorTitle = "{{ translate('error', 'error', data['lang']) }}";
+
+    // Create Passkey on button click
+    $("#createPasskeyButton").click(async function () {
+        // Start registration
+        let res = await fetch(`/api/v2/users/${userId}/passkeys/`, {
+            method: 'POST',
+            headers: {
+                'X-XSRFToken': token
+            },
+        });
+        if (!res.ok) {
+            bootbox.alert({
+                title: errorTitle,
+                message: "{{ translate('passkey', 'registrationFailed', data['lang']) }}"
+            });
+            return;
+        }
+        let responseData = await res.json();
+        if (responseData.status !== "ok") {
+            bootbox.alert({
+                title: responseData.error,
+                message: responseData.error_data || responseData.error
+            });
+            return;
+        }
+
+        const challengeId = responseData.data.challenge_id;
+        const options = responseData.data.options;
+
+        // Convert base64url to ArrayBuffer
+        options.challenge = base64URLToBuffer(options.challenge);
+        options.user.id = base64URLToBuffer(options.user.id);
+        if (options.excludeCredentials) {
+            options.excludeCredentials = options.excludeCredentials.map(cred => ({
+                ...cred,
+                id: base64URLToBuffer(cred.id)
+            }));
+        }
+
+        let credential;
+        try {
+            credential = await navigator.credentials.create({ publicKey: options });
+        } catch (err) {
+            let errorMessage = err.message;
+            if (err.name === 'SecurityError' || err.name === 'NotSupportedError') {
+                errorMessage = "{{ translate('passkey', 'insecureContext', data['lang']) }}";
+            } else if (err.name === 'NotAllowedError') {
+                errorMessage = "{{ translate('passkey', 'cancelled', data['lang']) }}";
+            }
+            bootbox.alert({
+                title: "{{ translate('passkey', 'registrationFailed', data['lang']) }}",
+                message: errorMessage
+            });
+            return;
+        }
+
+        // Prompt for passkey name
+        bootbox.prompt({
+            title: $("#createPasskeyButton").data("register-title"),
+            value: "{{ translate('passkey', 'defaultName', data['lang']) }}",
+            callback: async function(name) {
+                if (name === null) {
+                    return;
+                }
+
+                // Prepare credential for server
+                const credentialJSON = {
+                    id: credential.id,
+                    rawId: bufferToBase64URL(credential.rawId),
+                    type: credential.type,
+                    response: {
+                        clientDataJSON: bufferToBase64URL(credential.response.clientDataJSON),
+                        attestationObject: bufferToBase64URL(credential.response.attestationObject)
+                    }
+                };
+
+                if (credential.response.getTransports) {
+                    credentialJSON.response.transports = credential.response.getTransports();
+                }
+
+                // Verify registration
+                let verifyRes = await fetch(`/api/v2/users/${userId}/passkeys/${challengeId}/verify/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-XSRFToken': token,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name: name || "Passkey",
+                        credential: credentialJSON
+                    })
+                });
+                if (!verifyRes.ok && verifyRes.status >= 500) {
+                    bootbox.alert({
+                        title: errorTitle,
+                        message: "{{ translate('passkey', 'registrationFailed', data['lang']) }}"
+                    });
+                    return;
+                }
+                let verifyData = await verifyRes.json();
+                if (verifyData.status === "ok") {
+                    bootbox.alert({
+                        title: "{{ translate('passkey', 'success', data['lang']) }}",
+                        message: "{{ translate('passkey', 'registrationSuccess', data['lang']) }}",
+                        callback: function() {
+                            location.reload();
+                        }
+                    });
+                } else {
+                    bootbox.alert({
+                        title: verifyData.error,
+                        message: verifyData.error_data || verifyData.error
+                    });
+                }
+            }
+        });
+    });
+
+    // Delete passkey handlers
+    $('.delete-passkey').click(function () {
+        let passkeyId = $(this).data("passkey-id");
+        let yes = $(this).data("yes");
+        let no = $(this).data("no");
+        let warn = $(this).data("delete-warn");
+        let name = $(this).data("passkey-name");
+        return bootbox.confirm({
+            message: `${warn}<br><br>${name}`,
+            buttons: {
+                confirm: {
+                    label: yes,
+                    className: 'btn-danger'
+                },
+                cancel: {
+                    label: no,
+                    className: 'btn-secondary'
+                }
+            },
+            callback: function (result) {
+                if (result) {
+                    deletePasskey(passkeyId);
+                }
+            }
+        });
+    });
+
+    async function deletePasskey(passkeyId) {
+        let res = await fetch(`/api/v2/users/${userId}/passkeys/${passkeyId}/`, {
+            method: 'DELETE',
+            headers: {
+                'X-XSRFToken': token
+            },
+        });
+        if (!res.ok && res.status >= 500) {
+            bootbox.alert({
+                title: errorTitle,
+                message: "{{ translate('passkey', 'deleteFailed', data['lang']) }}"
+            });
+            return;
+        }
+        let responseData = await res.json();
+        if (responseData.status === "ok") {
+            $(`#${passkeyId}`).remove();
+            // Check if there are any passkeys left
+            if ($('#passkey-table tbody tr').length === 0) {
+                // Disable the password auth toggle
+                $('#disablePasswordAuth').prop('disabled', true).prop('checked', false);
+            }
+        } else {
+            bootbox.alert({
+                title: responseData.error,
+                message: responseData.error_data || responseData.error
+            });
+        }
+    }
+
+    // Handle disable password auth toggle
+    $('#disablePasswordAuth').change(async function() {
+        const isChecked = $(this).is(':checked');
+
+        let res = await fetch(`/api/v2/users/${userId}/`, {
+            method: 'PATCH',
+            headers: {
+                'X-XSRFToken': token,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                disable_password_auth: isChecked
+            })
+        });
+
+        if (!res.ok && res.status >= 500) {
+            $(this).prop('checked', !isChecked);
+            bootbox.alert({
+                title: errorTitle,
+                message: "{{ translate('passkey', 'updateFailed', data['lang']) }}"
+            });
+            return;
+        }
+
+        let responseData = await res.json();
+        if (responseData.status !== "ok") {
+            // Revert the checkbox on failure
+            $(this).prop('checked', !isChecked);
+            bootbox.alert({
+                title: responseData.error,
+                message: responseData.error_data || responseData.error
+            });
+        }
+    });
+</script>
+{% end %}

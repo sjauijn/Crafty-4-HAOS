@@ -1,0 +1,11 @@
+<select data-container="body" data-none-selected-text="{{ translate('serverWizard', 'noneRoles', data['lang']) }}"
+    data-none-results-text="{{ translate('serverWizard', 'noRole', data['lang']) }} {0}"
+    class="selectpicker form-control form-control-lg select-css roles_select" data-styleBase="form-control"
+    data-style="form-control" data-live-search="true" name="server_roles" multiple>
+    {% for r in data['roles'] %}
+    <option class="roles" type="checkbox" value="{{ r['role_id'] }}">
+        &nbsp; {{ r['role_name'].capitalize()
+        }}
+    </option>
+    {% end %}
+</select>

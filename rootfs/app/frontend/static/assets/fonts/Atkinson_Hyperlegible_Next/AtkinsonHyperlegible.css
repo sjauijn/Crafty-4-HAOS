@@ -1,0 +1,21 @@
+@font-face {
+    font-family: "Atkinson Hyperlegible Mono";
+    font-style: italic;
+    src: url(AtkinsonHyperlegibleMono-Italic-VariableFont_wght.ttf);
+}
+
+@font-face {
+    font-family: "Atkinson Hyperlegible Mono";
+    src: url(AtkinsonHyperlegibleMono-VariableFont_wght.ttf);
+}
+
+@font-face {
+    font-family: "Atkinson Hyperlegible Next";
+    font-style: italic;
+    src: url(AtkinsonHyperlegibleNext-Italic-VariableFont_wght.ttf);
+}
+
+@font-face {
+    font-family: "Atkinson Hyperlegible Next";
+    src: url(AtkinsonHyperlegibleNext-VariableFont_wght.ttf);
+}

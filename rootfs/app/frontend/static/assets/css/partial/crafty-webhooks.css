@@ -1,0 +1,9 @@
+.jinja2 {
+    background-color: var(--card-banner-bg);
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    outline: 1px solid var(--outline);
+    padding: 10px;
+    margin-top: 10px;
+    margin-bottom: -10px;
+}

@@ -1,0 +1,53 @@
+name: "Crafty Controller 4"
+version: "4.10.8"
+slug: crafty4
+description: "Game server control panel and launcher for Minecraft Java, Bedrock and other servers"
+url: "https://github.com/sjauijn/Crafty-4-HAOS"
+arch:
+  - amd64
+  - aarch64
+startup: application
+boot: auto
+init: false
+apparmor: false
+ingress: true
+ingress_port: 0
+ingress_stream: true
+panel_icon: mdi:minecraft
+ports:
+  8443/tcp: null
+ports_description:
+  8443/tcp: Direct web interface access (not required for Ingress)
+map:
+  - type: data
+    read_only: false
+  - type: share
+    read_only: false
+  - type: ssl
+    read_only: true
+  - type: media
+    read_only: false
+options:
+  timezone: "Europe/Paris"
+  ssl: false
+  certfile: "fullchain.pem"
+  keyfile: "privkey.pem"
+  data_location: ""
+  log_level: "info"
+schema:
+  timezone: "str"
+  ssl: "bool"
+  certfile: "str"
+  keyfile: "str"
+  data_location: "str"
+  log_level: "list(info|debug)"
+backup: cold
+backup_exclude:
+  - "data/servers/**/world/**"
+  - "data/servers/**/world_nether/**"
+  - "data/servers/**/world_the_end/**"
+  - "data/servers/**/logs/**"
+hassio_api: true
+homeassistant_api: false
+host_network: true
+privileged: []

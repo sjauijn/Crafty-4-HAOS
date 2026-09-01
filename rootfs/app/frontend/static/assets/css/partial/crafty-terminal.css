@@ -1,0 +1,38 @@
+#virt_console::-webkit-scrollbar {
+    display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+#virt_console {
+    -ms-overflow-style: none;
+    /* IE and Edge */
+    scrollbar-width: none;
+    /* Firefox */
+    font-family: "Atkinson Hyperlegible Mono", Consolas, Monaco, Lucida Console, Liberation Mono, DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier New, monospace;
+    white-space: pre-wrap;
+    width: 100%;
+    font-size: .8em;
+    padding: 5px 10px;
+    border: 1px solid var(--outline);
+    background-color: var(--card-banner-bg);
+    height: 500px;
+    overflow: scroll;
+}
+
+#to-bottom {
+    visibility: hidden;
+    float: right;
+}
+
+.term-btn {
+    max-width: 12rem;
+    white-space: nowrap;
+}
+
+div.server_command {
+    gap: 0.5rem;
+}
+
+input.server_command {
+    min-width: 10rem;
+}
