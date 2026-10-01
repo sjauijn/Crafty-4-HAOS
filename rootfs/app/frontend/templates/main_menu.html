@@ -1,0 +1,141 @@
+<!-- partial -->
+<!-- partial:partials/_sidebar.html -->
+<link href="/static/assets/css/partial/crafty-sidebar.css" rel="stylesheet">
+<script>
+  function debounce(func, wait, immediate) {
+    var timeout;
+    return function () {
+      var context = this, args = arguments;
+      var later = function () {
+        timeout = null;
+        if (!immediate) func.apply(context, args);
+      };
+      var callNow = immediate && !timeout;
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+      if (callNow) func.apply(context, args);
+    };
+  };
+  function isExtraLargeBreakpoint() {
+    const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
+    return vw >= 1200;
+  }
+  function isLargeBreakpoint() {
+    const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
+    return vw >= 992;
+  }
+  $(document).ready(function () {
+    sidebarResizeHandler(null);
+    $(window).on(
+      'resize',
+      debounce(sidebarResizeHandler, 25, true)
+    );
+  });
+  function sidebarResizeHandler(e) {
+    /*
+        Viewport sizes: Extra large (vw >= 1200px), large (vw >= 992px), medium (vw >= 768px)
+      - A localstorage item is set to remember a user's preference between collapsed or expanded.
+      - For extra large viewports, the sidebar is the user's preference (by default expanded). When
+        expanded or collapsed manually, it doesn't overlap the page content and the preference
+        gets saved to a localstorage item.
+      - For large viewports, the sidebar is collapsed. When expanded manually, it doesn't overlap
+        the page content. The user's localstorage preference is not overridden during this state.
+      - For medium and below viewports, the sidebar is hidden behing a hamburger icon. When expanded, the sidebar
+        overlaps the page content. The user's localstorage preference is not overridden during this state.
+
+      More code in `app/frontend/static/assets/js/shared/misc.js` and `app/frontend/templates/base.html`
+    */
+    if (isLargeBreakpoint()) {
+      let value = localStorage.getItem('crafty-sidebar-expanded') !== 'false';
+      $('body').toggleClass('sidebar-icon-only', !value);
+      localStorage.setItem('crafty-sidebar-expanded', value);
+    }
+  }
+</script>
+<nav class="sidebar sidebar-offcanvas" id="sidebar">
+  <ul class="nav sidebar">
+
+    <li class="nav-item">
+      <a class="nav-link" href="/panel/dashboard">
+        <i class="ph-fill ph-tree-view"></i>&nbsp;
+        <span class="menu-title">{{ translate('sidebar', 'dashboard', data['lang']) }}</span>
+      </a>
+    </li>
+
+    <li class="nav-item">
+      <a class="nav-link" data-toggle="collapse" href="#page-layouts" aria-expanded="false"
+        aria-controls="page-layouts">
+        <i class="ph-fill ph-hard-drives"></i> &nbsp;
+        <span class="menu-title">{{ translate('sidebar', 'servers', data['lang']) }}</span>
+        <i class="menu-arrow"></i>
+      </a>
+      <div class="collapse" id="page-layouts">
+        <ul class="nav flex-column sub-menu" id="sidebar-servers">
+          {% if data['crafty_permissions']['Server_Creation'] in data['user_crafty_permissions'] %}
+          <li class="nav-item">
+            <a class="nav-link" href="/server/step1"><i class="ph-fill ph-plus-circle"></i> &nbsp; {{ translate('sidebar',
+              'newServer', data['lang']) }}</a>
+          </li>
+          {% end %}
+          {% for s in data['menu_servers'] %}
+          <li class="nav-item">
+            <a class="nav-link" href="/panel/server_detail?id={{s['server_id']}}"><i class="ph-fill ph-hard-drives"></i> &nbsp;
+              {{s['server_name']}}</a>
+          </li>
+          {% end %}
+
+        </ul>
+      </div>
+    </li>
+
+    <li class="nav-item">
+      <a class="nav-link" href="https://docs.craftycontrol.com" target="_blank">
+        <i class="ph-fill ph-notebook"></i> &nbsp;
+        <span class="menu-title">{{ translate('sidebar', 'documentation', data['lang']) }}</span>
+      </a>
+    </li>
+
+    <li class="nav-item">
+      <a class="nav-link" href="/panel/wiki">
+        <i class="ph-fill ph-info"></i> &nbsp;
+        <span class="menu-title">{{ translate('sidebar', 'inApp', data['lang']) }}</span>
+      </a>
+    </li>
+
+    <li class="nav-item">
+      <a class="nav-link" href="https://discord.gg/9VJPhCE" target="_blank">
+        <i class="ph-fill ph-discord-logo"></i> &nbsp;
+        <span class="menu-title">Discord</span>
+      </a>
+    </li>
+
+    <li class="nav-item">
+      <a class="nav-link" href="/panel/credits">
+        <i class="ph-fill ph-heart"></i> &nbsp;
+        <span class="menu-title">{{ translate('sidebar', 'credits', data['lang']) }}</span>
+      </a>
+    </li>
+
+    {% if data['show_contribute'] %}
+    <li class="nav-item">
+      <a class="nav-link" href="/panel/contribute">
+        <i class="ph-fill ph-currency-dollar"></i> &nbsp;
+        <span class="menu-title">{{ translate('sidebar', 'contribute', data['lang']) }}</span>
+      </a>
+    </li>
+    {% end %}
+    <li class="nav-item">
+      <a class="nav-link panel-settings" href="/panel/panel_config">
+        <i class="ph-fill ph-gear"></i>&nbsp;
+        <span class="menu-title">{{ translate('sidebar', 'panelSettings', data['lang']) }}</span>
+      </a>
+    </li>
+
+  </ul>
+</nav>
+<script>
+  $(document).ready(function () {
+    $('#sidebar-servers li:gt(10)').remove();
+  })
+</script>
+<!-- partial -->

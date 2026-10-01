@@ -1,0 +1,515 @@
+{% extends ../base.html %}
+
+{% block meta %}
+{% end %}
+
+{% block title %}Crafty Controller - {{ translate('serverDetails', 'serverDetails', data['lang']) }}{% end %}
+
+{% block content %}
+
+<div class="content-wrapper">
+
+  <!-- Page Title Header Starts-->
+  <div class="row page-title-header">
+    <div class="col-12">
+      <div class="page-header">
+        <h4 class="page-title">
+          {{ translate('serverDetails', 'serverDetails', data['lang']) }} - {{
+          data['server_stats']['server_id']['server_name'] }}
+          <br />
+          <small>UUID: {{ data['server_stats']['server_id']['server_id'] }}</small>
+        </h4>
+      </div>
+    </div>
+
+  </div>
+  <!-- Page Title Header Ends-->
+
+  {% include "parts/details_stats.html" %}
+
+  <div class="row">
+
+    <div class="col-sm-12 grid-margin">
+      <div class="card">
+        <div class="card-body  pt-0">
+
+          <span class="d-none d-sm-block">
+            {% include "parts/server_controls_list.html" %}
+          </span>
+          <span class="d-block d-sm-none">
+            {% include "parts/m_server_controls_list.html" %}
+          </span>
+
+          <div class="row">
+            <div class="col-md-12 col-sm-12 overflow-x-auto">
+              <div class="card">
+                <div class="card-header header-sm d-flex justify-content-between align-items-center">
+                  <h4 class="card-title"><i class="ph-fill ph-calendar-blank"></i> {{ translate('serverSchedules',
+                    'scheduledTasks', data['lang']) }} </h4>
+                  {% if data['user_data']['hints'] %}
+                  <span class="too_small" title="{{ translate('serverSchedules', 'cannotSee', data['lang']) }}" ,
+                    data-content="{{ translate('serverSchedules', 'cannotSeeOnMobile', data['lang']) }}" ,
+                    data-placement="bottom"></span>
+                  {% end %}
+                  <div><a class="btn btn-info"
+                      href="/panel/add_schedule?id={{ data['server_stats']['server_id']['server_id'] }}"><i
+                        class="ph-fill ph-plus-circle"></i> {{ translate('serverSchedules', 'create', data['lang'])
+                      }}</a></div>
+                </div>
+                <div class="card-body">
+                  {% if len(data['schedules']) == 0 %}
+                  <div class="text-align-center text-secondary">
+                    <h7>{{ translate('serverSchedules', 'no-schedule', data['lang']) }} <strong>{{
+                        translate('serverSchedules', 'newSchedule',data['lang']) }}</strong>.</h7>
+                  </div>
+                  {% end %}
+                  {% if len(data['schedules']) > 0 %}
+                  <div class="d-none d-lg-block">
+                    <table class="table table-hover table-responsive no-scroll" id="schedule_table"
+                      style="table-layout:fixed;" aria-describedby="Schedule List">
+                      <thead>
+                        <tr class="rounded">
+                          <th style="width: 5%; min-width: 64px;">{{ translate('serverSchedules', 'enabled',
+                            data['lang']) }}</th>
+                          <th style="width: 7%; min-width: 10px;">{{ translate('serverSchedules', 'name', data['lang'])
+                            }}
+                          </th>
+                          <th style="width: 23%; min-width: 50px;">{{ translate('serverSchedules', 'action',
+                            data['lang'])
+                            }}</th>
+                          <th style="width: 40%; min-width: 50px;">{{ translate('serverSchedules', 'command',
+                            data['lang']) }}</th>
+                          <th style="width: 10%; min-width: 50px;">{{ translate('serverSchedules', 'interval',
+                            data['lang']) }}</th>
+                          <th style="width: 10%; min-width: 50px;">{{ translate('serverSchedules', 'nextRun',
+                            data['lang']) }}</th>
+                          <th style="width: 10%; min-width: 50px;">{{ translate('serverSchedules', 'edit', data['lang'])
+                            }}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {% for schedule in data['schedules'] %}
+                        <tr>
+                          <td id="{{schedule.enabled}}" class="enabled">
+                            <button type="button" class="btn btn-sm btn-info btn-toggle schedule-custom-toggle"
+                              id="schedule{{schedule.id}}" name="schedule{{schedule.id}}"
+                              data-schedule-id="{{schedule.schedule_id}}"
+                              data-schedule-enabled="{{ 'true' if schedule.enabled else 'false' }}" data-toggle="button"
+                              aria-pressed="true" autocomplete="off">
+                              <div class="handle"></div>
+                            </button>
+                          </td>
+                          <td id="{{schedule.schedule_id}}" class="id">
+                            <p>{{schedule.name}}</p>
+                          </td>
+                          <td id="{{schedule.action}}">
+                            <p>{{schedule.action}}</p>
+                          </td>
+                          <td id="{{schedule.command}}" class="overflow-scroll" style="max-width: 30px;">
+                            <p class="no-scroll">{{schedule.command}}</p>
+                          </td>
+                          <td id="{{schedule.interval}}">
+                            {% if schedule.interval_type != '' and schedule.interval_type != 'reaction' %}
+                            <p>{{ translate('serverSchedules', 'every', data['lang']) }}</p>
+                            <p>{{schedule.interval}} {{schedule.interval_type}}</p>
+                            {% elif schedule.interval_type == 'reaction' %}
+                            <p>{{schedule.interval_type}}<br><br>{{ translate('serverSchedules', 'child',
+                              data['lang'])}}:
+                              {{ schedule.parent }}</p>
+                            {% else %}
+                            <p>Cron String:</p>
+                            <p>{{schedule.cron_string}}</p>
+                            {% end %}
+                          </td>
+                          <td id="{{schedule.start_time}}">
+                            <p>{{schedule.next_run}}</p>
+                          </td>
+                          <td id="{{schedule.action}}" class="action">
+                            <button
+                              onclick="globalThis.location.href='/panel/edit_schedule?id={{ data['server_stats']['server_id']['server_id'] }}&sch_id={{schedule.schedule_id}}'"
+                              class="btn btn-info">
+                              <i class="ph-fill ph-pencil-simple"></i>
+                            </button>
+                            <button data-sch={{ schedule.schedule_id }} class="btn btn-success run_now_button"
+                              title="{{ translate('serverSchedules', 'runNow', data['lang']) }}">
+                              <i class="ph-fill ph-play" aria-hidden="true"></i>
+                            </button>
+                            <button data-sch={{ schedule.schedule_id }} class="btn btn-danger del_button">
+                              <i class="ph-fill ph-trash-simple" aria-hidden="true"></i>
+                            </button>
+                          </td>
+                        </tr>
+                        {% end %}
+                      </tbody>
+                    </table>
+                    <hr />
+                  </div>
+                  <div class=" d-block d-lg-none">
+                    <table class="table table-hover" id="mini_schedule_table" style="table-layout:fixed;"
+                      aria-describedby="Schedule List Mobile">
+                      <thead>
+                        <tr class="rounded">
+                          <th style="width: 25%; min-width: 50px;">{{ translate('serverSchedules', 'action',
+                            data['lang'])
+                            }}</th>
+                          <th style="max-width: 40%; min-width: 50px;">{{ translate('serverSchedules', 'command',
+                            data['lang']) }}</th>
+                          <th style="width: 10%; min-width: 50px;">{{ translate('serverSchedules', 'enabled',
+                            data['lang']) }}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {% for schedule in data['schedules'] %}
+                        <tr data-toggle="modal" data-target="#task_details_{{schedule.schedule_id}}">
+                          <td id="{{schedule.action}}" class="action">
+                            <p>{{schedule.action}}</p>
+                          </td>
+                          <td id="{{schedule.command}}" class="action overflow-scroll" style="max-width: 30px;">
+                            <p class="overflow-scroll;">{{schedule.command}}</p>
+                          </td>
+                          <td id="{{schedule.enabled}}" class="enabled">
+                            <button type="button" class="btn btn-sm btn-info btn-toggle schedule-custom-toggle"
+                              id="schedule{{schedule.id}}" name="schedule{{schedule.id}}"
+                              data-schedule-id="{{schedule.schedule_id}}"
+                              data-schedule-enabled="{{ 'true' if schedule.enabled else 'false' }}" data-toggle="button"
+                              aria-pressed="true" autocomplete="off">
+                              <div class="handle"></div>
+                            </button>
+                          </td>
+                        </tr>
+                        <!-- Modal -->
+                        <div class="modal fade" id="task_details_{{schedule.schedule_id}}" tabindex="-1" role="dialog"
+                          aria-labelledby="exampleModalLabel" aria-hidden="true">
+                          <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                              <div class="modal-header">
+                                <h5 class="modal-title" id="exampleModalLabel">{{ translate('serverSchedules',
+                                  'details',
+                                  data['lang']) }}</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                  <span aria-hidden="true">&times;</span>
+                                </button>
+                              </div>
+                              <div class="modal-body">
+                                <ul class="list-group">
+                                  <li id="{{schedule.schedule_id}}" class="id list-group-item">
+                                    <h4>{{ translate('serverSchedules', 'name', data['lang']) }}</h4>
+                                    <p class="mb-0">{{schedule.schedule_id}}</p>
+                                  </li>
+                                  <li id="{{schedule.action}}" class="action list-group-item">
+                                    <h4>{{ translate('serverSchedules', 'action', data['lang']) }}</h4>
+                                    <p class="mb-0">{{schedule.action}}</p>
+                                  </li>
+                                  <li id="{{schedule.command}}" class="action list-group-item">
+                                    <h4>{{ translate('serverSchedules', 'command', data['lang']) }}</h4>
+                                    <p class="mb-0">{{schedule.command}}</p>
+                                  </li>
+                                  <li id="{{schedule.interval}}" class="action list-group-item">
+                                    {% if schedule.interval != '' %}
+                                    <h4>{{ translate('serverSchedules', 'interval', data['lang']) }}</h4>
+                                    <p class="mb-0">{{ translate('serverSchedules', 'every', data['lang']) }}
+                                      {{schedule.interval}}
+                                      {{schedule.interval_type}}</p>
+                                    {% elif schedule.interval_type == 'reaction' %}
+                                    <h4>{{ translate('serverSchedules', 'interval', data['lang']) }}</h4>
+                                    <p class="mb-0">{{schedule.interval_type}}<br><br>{{ translate('serverSchedules',
+                                      'child',
+                                      data['lang']) }}: {{ schedule.parent }}</p>
+                                    {% else %}
+                                    <h4>{{ translate('serverSchedules', 'interval', data['lang']) }}</h4>
+                                    <p class="mb-0">{{ translate('serverSchedules', 'cron', data['lang']) }}:
+                                      {{schedule.cron_string}}</p>
+                                    {% end %}
+                                  </li>
+                                  <li id="{{schedule.start_time}}" class="action list-group-item">
+                                    <h4>{{ translate('serverSchedules', 'nextRun', data['lang']) }}</h4>
+                                    {% if schedule.next_run %}
+                                    <p class="mb-0">{{schedule.next_run}}</p>
+                                    {% else %}
+                                    <p class="mb-0">zzzzzzz</p>
+                                    {% end %}
+                                  </li>
+                                  <li id="{{schedule.enabled}}" class="action list-group-item">
+                                    <h4>{{ translate('serverSchedules', 'enabled', data['lang']) }}</h4>
+                                    <input type="checkbox" class="schedule-enabled-toggle"
+                                      data-schedule-id="{{schedule.schedule_id}}"
+                                      data-schedule-enabled="{{ 'true' if schedule.enabled else 'false' }}">
+                                  </li>
+                                </ul>
+                              </div>
+                              <div class="modal-footer">
+                                <button
+                                  onclick="globalThis.location.href='/panel/edit_schedule?id={{ data['server_stats']['server_id']['server_id'] }}&sch_id={{schedule.schedule_id}}'"
+                                  class="btn btn-info">
+                                  <i class="ph-fill ph-pencil-simple"></i> {{ translate('serverSchedules', 'edit',
+                                  data['lang'])
+                                  }}
+                                </button>
+                                <button data-sch={{ schedule.schedule_id }} class="btn btn-success run_now_button">
+                                  <i class="ph-fill ph-play" aria-hidden="true"></i> {{
+                                  translate('serverSchedules',
+                                  'runNow', data['lang']) }}
+                                </button>
+                                <button data-sch={{ schedule.schedule_id }} class="btn btn-danger del_button">
+                                  <i class="ph-fill ph-trash-simple" aria-hidden="true"></i> {{
+                                  translate('serverSchedules',
+                                  'delete', data['lang']) }}
+                                </button>
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">{{
+                                  translate('serverSchedules', 'close', data['lang']) }}</button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        {% end %}
+                      </tbody>
+                    </table>
+                  </div>
+                  {% end %}
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+  <style>
+    .toggle-handle {
+      background-color: white !important;
+    }
+
+    .toggle-on {
+      color: black !important;
+    }
+
+    .toggle {
+      height: 0px !important;
+    }
+
+    td.enabled {
+      vertical-align: middle;
+      border-collapse: collapse !important;
+    }
+
+    .enabled .toggle-group .btn {
+      vertical-align: middle;
+      cursor: pointer;
+    }
+  </style>
+
+
+
+</div>
+<style>
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  td::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Hide scrollbar for IE, Edge and Firefox */
+  td {
+    -ms-overflow-style: none;
+    /* IE and Edge */
+    scrollbar-width: none;
+    /* Firefox */
+  }
+</style>
+<!-- content-wrapper ends -->
+
+{% end %}
+
+{% block js %}
+<script>
+
+  function debounce(func, timeout = 300) {
+    let timer;
+    return (...args) => {
+      clearTimeout(timer);
+      timer = setTimeout(() => { func.apply(this, args); }, timeout);
+    };
+  }
+
+  $(document).ready(function () {
+    $('.schedule-custom-toggle').each(function () {
+      const enabled = JSON.parse(this.dataset.scheduleEnabled);
+      if (enabled) {
+        this.classList.add("active");
+      }
+      else {
+        this.classList.remove("active");
+      }
+    })
+  });
+  $(() => {
+    $('.schedule-custom-toggle').click(function () {
+      const id = this.dataset.scheduleId;
+      const enabled = !JSON.parse(this.dataset.scheduleEnabled);
+
+      fetch(`/api/v2/servers/{{data['server_id']}}/tasks/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ enabled }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+    });
+  })
+
+  const serverId = new URLSearchParams(document.location.search).get('id')
+
+  $(document).ready(function () {
+    console.log('ready for JS!');
+    $('#schedule_table').DataTable({
+      'order': [4, 'asc'],
+    }
+    );
+
+  });
+  $(document).ready(function () {
+    console.log('ready for JS!')
+    $('#mini_schedule_table').DataTable({
+      'order': [2, 'asc']
+    }
+    );
+    document.getElementById('mini_schedule_table_wrapper').hidden = true;
+  });
+  $(document).ready(function () {
+    $('[data-toggle="popover"]').popover();
+    if ($(globalThis).width() < 1000) {
+      $('.too_small').popover("show");
+      document.getElementById('schedule_table_wrapper').hidden = true;
+      document.getElementById('mini_schedule_table_wrapper').hidden = false;
+    }
+
+  });
+  $(globalThis).ready(function () {
+    $('body').click(function () {
+      $('.too_small').popover("hide");
+    });
+  });
+  $(globalThis).resize(function () {
+    // This will execute whenever the globalThis is resized
+    if ($(globalThis).width() < 1000) {
+      $('.too_small').popover("show");
+      document.getElementById('schedule_table_wrapper').hidden = true;
+      document.getElementById('mini_schedule_table_wrapper').hidden = false;
+    }
+    else {
+      $('.too_small').popover("hide");
+      document.getElementById('schedule_table_wrapper').hidden = false;
+      document.getElementById('mini_schedule_table_wrapper').hidden = true;
+    } // New width
+  });
+</script>
+<script>
+
+
+  //used to get cookies from browser - this is part of tornados xsrf protection - it's for extra security
+  function getCookie(name) {
+    var r = document.cookie.match(String.raw`\b` + name + String.raw`=([^;]*)\b`);
+    return r ? r[1] : undefined;
+  }
+
+  $(document).ready(function () {
+    console.log("ready!");
+
+  });
+  $(".del_button").click(function () {
+    var sch_id = $(this).data('sch');
+
+    console.log(sch_id)
+
+    bootbox.confirm({
+      title: "{{ translate('serverSchedules', 'areYouSure', data['lang']) }}",
+      message: "{{ translate('serverSchedules', 'confirmDelete', data['lang']) }}",
+      buttons: {
+        cancel: {
+          label: `<i class="ph-bold ph-x"></i> {{ translate("serverSchedules", "cancel", data['lang']) }}`
+        },
+        confirm: {
+          className: 'btn-outline-danger',
+          label: `<i class="ph-bold ph-check"></i> {{ translate("serverSchedules", "confirm", data['lang']) }}`
+        },
+
+      },
+      callback: function (result) {
+        console.log(result);
+        if (result) {
+          del_task(sch_id, serverId);
+        }
+      }
+    });
+  });
+
+  async function del_task(sch_id, id) {
+    const token = getCookie("_xsrf")
+
+    let res = await fetch(`/api/v2/servers/${id}/tasks/${sch_id}`, {
+      method: 'DELETE',
+      headers: {
+        'token': token,
+      },
+    });
+    let responseData = await res;
+    if (responseData.statusText === "OK") {
+      globalThis.location.reload();
+    }
+  }
+
+  $(".run_now_button").click(function () {
+    var sch_id = $(this).data('sch');
+
+    bootbox.confirm({
+      title: "{{ translate('serverSchedules', 'runNowTitle', data['lang']) }}",
+      message: `{{ translate('serverSchedules', 'confirmRunNow', data['lang']) }}`
+        + `<label class="mt-3" style="display:inline-flex;align-items:center;gap:.4rem;cursor:pointer;font-weight:normal;margin-bottom:0;">`
+        + `<input type="checkbox" id="run_now_cascade">`
+        + `<span>{{ translate('serverSchedules', 'cascadeChildren', data['lang']) }}</span></label>`,
+      buttons: {
+        cancel: {
+          label: `<i class="ph-bold ph-x"></i> {{ translate("serverSchedules", "cancel", data['lang']) }}`
+        },
+        confirm: {
+          className: 'btn-outline-success',
+          label: `<i class="ph-bold ph-play"></i> {{ translate("serverSchedules", "runNow", data['lang']) }}`
+        },
+      },
+      callback: function (result) {
+        if (result) {
+          const cascade = $('#run_now_cascade').is(':checked');
+          run_task_now(sch_id, serverId, cascade);
+        }
+      }
+    });
+  });
+
+  async function run_task_now(sch_id, id, cascade) {
+    const token = getCookie("_xsrf")
+    const btn = $(`.run_now_button[data-sch='${sch_id}']`);
+    btn.prop('disabled', true);
+
+    try {
+      let res = await fetch(`/api/v2/servers/${id}/tasks/${sch_id}/run`, {
+        method: 'POST',
+        headers: {
+          'token': token,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ cascade: cascade }),
+      });
+      if (res.ok) {
+        bootbox.alert("{{ translate('serverSchedules', 'taskQueued', data['lang']) }}");
+      } else {
+        let errData = await res.json();
+        bootbox.alert("Error: " + (errData.error_data || errData.error));
+      }
+    } finally {
+      btn.prop('disabled', false);
+    }
+  }
+
+</script>
+
+{% end %}

@@ -1,0 +1,112 @@
+.api-alert {
+    position: absolute;
+    top: -5px;
+    left: 0;
+    font-size: 50px !important;
+    color: var(--white);
+    background: var(--blue);
+    /* rgb(0, 170, 170);*/
+    width: 100%;
+    height: 100%;
+    z-index: 100;
+    opacity: .95;
+}
+
+.api-alert p {
+    margin: 0;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    text-align: center;
+    font-size: 20px;
+    -ms-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+    color: var(--white) !important;
+}
+
+.api-alert p>i,
+.api-alert p>a {
+    color: var(--red);
+}
+
+button>i.refresh-class {
+    margin: 0px;
+}
+
+.refresh-class:hover {
+    cursor: grab;
+}
+
+.scroll {
+    max-height: 12em;
+    overflow-y: auto;
+}
+
+#overlay {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 100%;
+    height: 100%;
+    z-index: 100;
+}
+
+/* Remove default bullets */
+.tree-view,
+.tree-nested {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    margin-left: 10px;
+}
+
+/* Style the items */
+.tree-item,
+.files-tree-title {
+    cursor: pointer;
+    user-select: none;
+    /* Prevent text selection */
+}
+
+/* Create the caret/arrow with a unicode, and style it */
+.tree-caret .ph-folder {
+    display: inline-block;
+}
+
+.tree-caret .ph-folder-open {
+    display: none;
+}
+
+/* Rotate the caret/arrow icon when clicked on (using JavaScript) */
+.tree-caret-down .ph-folder {
+    display: none;
+}
+
+.tree-caret-down .ph-folder-open {
+    display: inline-block;
+}
+
+/* Hide the nested list */
+.tree-nested {
+    display: none;
+}
+
+#op_logo {
+    position: relative;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+div>.input-group>.custom-file-input {
+    position: relative !important;
+    -webkit-box-flex: 1 !important;
+    -ms-flex: 1 1 auto !important;
+    flex: 1 1 auto !important;
+    width: 1% !important;
+    margin-bottom: 0 !important;
+    border: 1px solid var(--outline);
+}
+
+#steam-badge {
+    -webkit-transform: translate(-0%, -30%);
+}

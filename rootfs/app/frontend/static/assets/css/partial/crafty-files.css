@@ -1,0 +1,330 @@
+.animated-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 8px;
+    border-bottom-right-radius: 8px;
+    border-bottom-left-radius: 8px;
+    background: var(--ram-bg);
+    padding: 8px;
+    cursor: pointer;
+}
+
+.row-select, .root-select {
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--outline);
+    border-radius: 6px;
+    background: var(--deep-bg);
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s ease;
+    margin: 0;
+}
+
+.row-select:hover, .root-select:hover {
+    border-color: var(--info);
+    background: var(--card-banner-bg);
+}
+
+.row-select:checked, .root-select:checked {
+    background: var(--info);
+    border-color: var(--info);
+}
+
+.row-select:checked::after, .root-select:checked::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 6px;
+    width: 4px;
+    height: 10px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+.row-select:focus, .root-select:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(136, 98, 224, 0.2);
+}
+
+.animated-table tbody tr {
+    background: var(--ram-bg);
+    border-radius: 10px;
+    overflow: visible;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.animated-table tbody tr:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.animated-table td,
+.animated-table th {
+    position: relative;
+    z-index: 1;
+    padding: 12px 16px;
+    border: none;
+    background: transparent;
+    vertical-align: middle;
+}
+
+.animated-table tbody tr td:first-child::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 300%;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg,
+            rgba(255, 255, 255, 0) 0%,
+            var(--info) 50%,
+            rgba(255, 255, 255, 0) 100%);
+    transform: translateX(-100%);
+    z-index: 0;
+    pointer-events: none;
+}
+
+.animated-table tbody tr:hover td:first-child::before {
+    animation: shimmer 1.8s linear infinite;
+}
+
+.animated-table thead th::before {
+    content: none !important;
+    animation: none !important;
+}
+
+@keyframes shimmer {
+    0% {
+        transform: translateX(-100%);
+        opacity: 0%;
+    }
+
+    50% {
+        transform: translateX(0%);
+        opacity: 70%;
+    }
+
+    100% {
+        transform: translateX(100%);
+        opacity: 0%;
+    }
+}
+
+/* Skeleton row styling */
+.skeleton-row {
+    position: relative;
+    background: var(red);
+    border-radius: 10px;
+    overflow: hidden;
+    height: 40px;
+    /* approximate row height */
+}
+
+/* Skeleton lines in cells */
+.skeleton-line {
+    height: 16px;
+    /* text height */
+    border-radius: 8px;
+    background: var(--ram-bg);
+    /* base skeleton color */
+    position: relative;
+    overflow: hidden;
+    margin: 12px 0;
+    /* center vertically in the cell */
+}
+
+/* Shimmer animation */
+.skeleton-line::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg,
+            var(--ram-bg) 0%,
+            var(--primary) 50%,
+            var(--ram-bg) 100%);
+    animation: skelline 1.5s infinite;
+}
+
+@keyframes skelline {
+    0% {
+        transform: translateX(-100%);
+    }
+
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+#drop-zone {
+    position: relative;
+    transition: background-color 0.3s ease, border 0.3s ease;
+}
+
+#drop-zone-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 6px;
+    opacity: 0;
+    pointer-events: none;
+    /* always none! */
+    transition: opacity 0.2s ease;
+    z-index: 10;
+}
+
+#drop-zone-overlay img {
+    opacity: 0.9;
+}
+
+/* Active state */
+#drop-zone.drop-hover #drop-zone-overlay {
+    opacity: 1;
+}
+
+#status-icon {
+    position: sticky;
+    width: 20px;
+    bottom: 20px;
+    right: 20px;
+    z-index: 100;
+}
+
+#context-container {
+    background-color: var(--ram-bg);
+}
+
+.table-nav-container {
+    display: inline-block;
+    position: sticky;
+    top: 0;
+    gap: 8px;
+    background: var(--ram-bg);
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    padding: 8px 12px;
+    width: 100%;
+}
+
+#table-nav-buttons .btn {
+    background: transparent;
+    border: 2px solid var(--info);
+    color: var(--info);
+    opacity: 0.85;
+    transition: all 0.2s ease;
+    font-weight: 600;
+}
+
+#table-nav-buttons .btn:hover {
+    background: var(--info);
+    color: white;
+    opacity: 1;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(136, 98, 224, 0.3);
+}
+
+#table-nav-buttons .btn:active {
+    transform: translateY(0);
+}
+
+#table-nav-buttons .btn-danger {
+    border-color: var(--danger);
+    color: var(--danger);
+}
+
+#table-nav-buttons .btn-danger:hover {
+    background: var(--danger);
+    color: white;
+    box-shadow: 0 2px 6px rgba(255, 98, 88, 0.3);
+}
+
+.tree-nav {
+    cursor: pointer;
+}
+
+/*  This code forces the main-panel to scroll
+    instead of the body so that the position 
+    sticky on file-status will work
+*/
+
+.main-panel {
+    overflow: auto;
+    position: relative;
+    height: calc(100vh - 63px);
+    background-color: var(--deep-bg);
+}
+
+.content-wrapper {
+    padding-bottom: 0;
+}
+
+body {
+    overflow: hidden;
+}
+
+#file-status {
+    --width: clamp(150px, 20vw, 300px);
+    position: sticky;
+    bottom: 1px;
+    left: calc(100% - var(--width) - 1.75em);
+    background-color: var(--deep-bg);
+    width: var(--width);
+    z-index: 100;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    padding: 10px;
+    outline: 1px solid var(--outline);
+    cursor: pointer;
+}
+
+#status-caret {
+    float: right;
+    right: -10px;
+}
+
+#operation-total {
+    color: var(--deep-bg);
+}
+
+#table-nav-buttons button {
+    margin-bottom: 10px;
+}
+
+.files-progress {
+    margin-top: 7px;
+}
+
+.highlight-row {
+    background-color: var(--deep-bg) !important;
+}
+
+#file-status-content {
+    position: absolute;
+    bottom: 100%;
+    padding: 10px;
+    margin-bottom: -6px;
+    left: 0;
+    width: 100%;
+    max-height: 50vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    background-color: var(--deep-bg);
+    border: 1px solid var(--outline);
+    border-radius: 10px 10px 0 0;
+    z-index: 101;
+    display: block;
+}
+
+#get_more {
+    background-color: var(--card-banner-bg);
+    overflow: hidden;
+}

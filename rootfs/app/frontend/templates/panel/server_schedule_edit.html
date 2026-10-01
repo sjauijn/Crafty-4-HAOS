@@ -1,0 +1,471 @@
+{% extends ../base.html %}
+
+{% block meta %}
+{% end %}
+
+{% block title %}Crafty Controller - {{ translate('serverDetails', 'serverDetails', data['lang']) }}{% end %}
+
+{% block content %}
+
+<div class="content-wrapper">
+
+  <!-- Page Title Header Starts-->
+  <div class="row page-title-header">
+    <div class="col-12">
+      <div class="page-header">
+        <h4 class="page-title">
+          {{ translate('serverDetails', 'serverDetails', data['lang']) }} - {{
+          data['server_stats']['server_id']['server_name'] }}
+          <br />
+          <small>UUID: {{ data['server_stats']['server_id']['server_id'] }}</small>
+        </h4>
+      </div>
+    </div>
+
+  </div>
+  <!-- Page Title Header Ends-->
+
+  {% include "parts/details_stats.html" %}
+
+  <div class="row">
+
+    <div class="col-sm-12 grid-margin">
+      <div class="card">
+        <div class="card-body  pt-0">
+          <span class="d-none d-sm-block">
+            {% include "parts/server_controls_list.html" %}
+          </span>
+          <span class="d-block d-sm-none">
+            {% include "parts/m_server_controls_list.html" %}
+          </span>
+
+          <div class="row">
+            <div class="col-md-8 col-sm-8">
+              {% if data['new_schedule'] == True %}
+              <form class="forms-sample" method="post" id="new_schedule_form" action="/panel/new_schedule?id={{ data['server_stats']['server_id']['server_id'] }}">
+                {% else %}
+                <form class="forms-sample" method="post" id="schedule_form" action="/panel/edit_schedule?id={{ data['server_stats']['server_id']['server_id'] }}&sch_id={{ data['schedule']['schedule_id'] }}">
+                  {% end %}
+
+                  <div class="form-group">
+                    <label for="name">{{ translate('serverSchedules', 'name' , data['lang']) }}</label>
+                    <input type="input" class="form-control" name="name" id="name_input" value="{{ data['schedule']['name']}}" maxlength="30" placeholder="Name" required>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="difficulty">{{ translate('serverScheduleConfig', 'select' , data['lang']) }}<small class="text-muted ml-1"></small> </label><br>
+                    <select id="difficulty" name="difficulty" onchange="basicAdvanced(this);" class="form-control form-control-lg select-css" value="{{ data['schedule']['difficulty']  }}">
+                      <option id="basic" value="basic">{{ translate('serverScheduleConfig', 'basic' , data['lang']) }}
+                      </option>
+                      <option id="advanced" value="advanced">{{ translate('serverScheduleConfig', 'cron' , data['lang'])
+                        }}</option>
+                      <option id="reaction" value="reaction">{{ translate('serverScheduleConfig', 'reaction' ,
+                        data['lang']) }}</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label for="server_name">{{ translate('serverSchedules', 'action' , data['lang']) }}<small class="text-muted ml-1"></small> </label><br>
+                    <select id="action" name="action" onchange="yesnoCheck(this);" class="form-control form-control-lg select-css" value="{{ data['schedule']['action']  }}">
+                      <option id="start" value="start">{{ translate('serverScheduleConfig', 'start' , data['lang']) }}
+                      </option>
+                      <option id="restart" value="restart">{{ translate('serverScheduleConfig', 'restart' ,
+                        data['lang']) }}</option>
+                      <option id="stop" value="stop">{{ translate('serverScheduleConfig', 'stop' , data['lang']) }}
+                      </option>
+                      <option id="backup" value="backup">{{ translate('serverScheduleConfig', 'backup' , data['lang'])
+                        }}</option>
+                      <option id="command" value="command">{{ translate('serverScheduleConfig', 'custom' , data['lang'])
+                        }}</option>
+                    </select>
+                    <div id="ifBackup" class="d-none">
+                      <br>
+                      <label id="action_id_label" for="action_id" data-backup-translate="{{ translate('serverSchedules', 'backupPol', data['lang']) }}" data-action-translate="{{ translate('serverSchedules', 'actionId', data['lang']) }}"><small
+                        class="text-muted ml-1"></small> </label><br>
+                      <select id="action_id" name="action_id"
+                        class="form-control form-control-lg select-css" value="{{ data['schedule']['action_id']  }}">
+                        {% for backup in data["backups"] %}
+                        {% if backup.backup_id == data["schedule"]["action_id"] %}
+                        <option id="{{backup.backup_id}}" value="{{backup.backup_id}}">{{backup.backup_name}}</option>
+                        {% end %}
+                        {% end %}
+                        {% for backup in data["backups"] %}
+                        {% if backup.backup_id != data["schedule"]["action_id"] %}
+                        <option id="{{backup.backup_id}}" value="{{backup.backup_id}}">{{backup.backup_name}}</option>
+                        {% end %}
+                        {% end %}
+                      </select>
+                    </div>
+                  </div>
+                  <div id="ifBasic">
+                    <div class="form-group">
+                      <label for="server_path">{{ translate('serverScheduleConfig', 'interval' , data['lang']) }} <small class="text-muted ml-1"> - {{ translate('serverScheduleConfig', 'interval-explain' ,
+                          data['lang']) }}</small> </label>
+                      <input type="number" class="form-control" name="interval" id="interval" value="{{ data['schedule']['interval']  }}" placeholder="Interval" required min="1">
+                      <br>
+                      <br>
+                      <select id="interval_type" onchange="ifDays(this);" name="interval_type" class="form-control form-control-lg select-css" value="{{ data['schedule']['interval_type']  }}">
+                        <option id="days" value="days">{{ translate('serverScheduleConfig', 'days' , data['lang']) }}
+                        </option>
+                        <option id="hours" value="hours">{{ translate('serverScheduleConfig', 'hours' , data['lang']) }}
+                        </option>
+                        <option id="minutes" value="minutes">{{ translate('serverScheduleConfig', 'minutes' ,
+                          data['lang']) }}</option>
+                      </select>
+                    </div>
+                    <div id="ifDays" class="d-block">
+                      <div class="form-group">
+                        <label for="time">{{ translate('serverScheduleConfig', 'time' , data['lang']) }} <small class="text-muted ml-1"> - {{ translate('serverScheduleConfig', 'time-explain' ,
+                            data['lang']) }}</small> </label>
+                        <input type="time" class="form-control" name="start_time" id="time" value="{{ data['schedule']['time']  }}" placeholder="Time" required>
+                      </div>
+                    </div>
+                  </div>
+                  <div id="ifYes" class="d-none">
+                    <div class="form-group">
+                      <label for="command">{{ translate('serverScheduleConfig', 'command' , data['lang']) }} <small class="text-muted ml-1"> - {{ translate('serverScheduleConfig', 'command-explain' ,
+                          data['lang']) }}</small> </label>
+                      <input type="input" class="form-control" name="command" id="command_input" value="{{ data['schedule']['command']  }}" placeholder="Command" required>
+                    </div>
+                  </div>
+                  <div id="ifAdvanced" class="d-none">
+                    <div class="form-group">
+                      <label for="cron">{{ translate('serverScheduleConfig', 'cron' , data['lang']) }} <small class="text-muted ml-1"> - {{ translate('serverScheduleConfig', 'cron-explain' , data['lang'])
+                          }}</small> </label>
+                      <input type="input" class="form-control" name="cron_string" id="cron" value="{{ data['schedule']['cron_string']  }}" placeholder="* * * * *">
+                    </div>
+                  </div>
+                  <div id="ifReaction" class="d-none">
+                    <div class="form-group">
+                      <label for="delay">{{ translate('serverScheduleConfig', 'offset' , data['lang']) }} <small class="text-muted ml-1"> - {{ translate('serverScheduleConfig', 'offset-explain' ,
+                          data['lang']) }}</small> </label>
+                      <input type="number" class="form-control" name="delay" id="delay" value="{{ data['schedule']['delay']}}">
+                      <br>
+                      <br>
+                      <label for="parent">{{ translate('serverScheduleConfig', 'parent' , data['lang']) }} <small class="text-muted ml-1"> - {{ translate('serverScheduleConfig', 'parent-explain' ,
+                          data['lang']) }}</small> </label>
+                      <select id="parent" name="parent" class="form-control form-control-lg select-css" value="{{ data['schedule']['action']  }}">
+                        {% if data['parent'] %}
+                        <option id="{{data['parent']['schedule_id']}}" value="{{data['parent']['schedule_id']}}">
+                          {{data['parent']['name']}} | {{data['parent']['command']}} | {{data['parent']['interval']}}
+                        </option>
+                        {% for schedule in data['schedules'] %}
+                        {% if schedule.schedule_id != data['schedule']['schedule_id'] and schedule.schedule_id != data['parent']['schedule_id'] %}
+                        {% if schedule.interval != '' %}
+                        <option id="{{schedule.schedule_id}}" value="{{schedule.schedule_id}}">
+                          {{schedule.name}} | {{schedule.command}} | {{schedule.interval}} {{
+                          schedule.interval_type}}</option>
+                        {% else %}
+                        <option id="{{schedule.schedule_id}}" value="{{schedule.schedule_id}}">
+                          {{schedule.name}} | {{schedule.command}} | {{schedule.cron_string}}</option>
+                        {% end %}
+                        {% end %}
+                        {% end %}
+                        {% else %}
+                        {% for schedule in data['schedules'] %}
+                        {% if schedule.schedule_id != data['schedule']['schedule_id'] and schedule.schedule_id %}
+                        {% if schedule.interval != '' %}
+                        <option id="{{schedule.schedule_id}}" value="{{schedule.schedule_id}}">
+                          {{schedule.name}} | {{schedule.command}} | {{schedule.interval}} {{
+                          schedule.interval_type}}</option>
+                        {% else %}
+                        <option id="{{schedule.schedule_id}}" value="{{schedule.schedule_id}}">
+                          {{schedule.name}} | {{schedule.command}} | {{schedule.cron_string}}</option>
+                        {% end %}
+                        {% end %}
+                        {% end %}
+                        {% end %}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="form-check-flat">
+                    <label for="enabled" class="form-check-label ml-4 mb-4">
+                      <input type="checkbox" class="form-check-input" id="enabled" name="enabled" checked="" value="1">{{ translate('serverScheduleConfig', 'enabled' , data['lang']) }}
+                    </label>
+
+                  </div>
+                  <div class="form-check-flat">
+                    <label for="one_time" class="form-check-label ml-4 mb-4">
+                      <input type="checkbox" class="form-check-input" id="one_time" name="one_time" value="1">{{
+                      translate('serverScheduleConfig', 'one-time' , data['lang']) }}
+                    </label>
+
+                  </div>
+                  <button type="submit" class="btn btn-success mr-2"><i class="ph-fill ph-floppy-disk"></i> {{
+                    translate('serverConfig', 'save', data['lang']) }}</button>
+                  <button type="reset" onclick="location.href=`/panel/server_detail?id={{ data['server_stats']['server_id']['server_id'] }}&subpage=schedules`" class="btn btn-light"><i class="ph-bold ph-x"></i> {{ translate('serverConfig', 'cancel',
+                    data['lang']) }}</button>
+                </form>
+            </div>
+            <div class="col-sm-4 grid-margin">
+              <h4>{{ translate('serverScheduleConfig', 'children' , data['lang']) }}</h4>
+              <ul class="list-group">
+                {% for schedule in data['schedule']['children'] %}
+                <li class="list-group-item">
+                  <a href="/panel/edit_schedule?id={{schedule.server_id}}&sch_id={{schedule.schedule_id}}">{{schedule.name}} | {{schedule.schedule_id}}</a>
+                </li>
+                {% end %}
+              </ul>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+
+  </div>
+  <!-- content-wrapper ends -->
+
+  {% end %}
+
+  {% block js %}
+  <script>
+
+
+    //used to get cookies from browser - this is part of tornados xsrf protection - it's for extra security
+    function getCookie(name) {
+      var r = document.cookie.match("\\b" + name + "=([^;]*)\\b");
+      return r ? r[1] : undefined;
+    }
+
+    function replacer(key, value) {
+      if (key != "start_time" && key != "cron_string" && key != "interval_type" && key != "action_id") {
+        if (typeof value == "boolean") {
+          return value
+        }
+        console.log(key)
+        if (key === "interval" && value === "") {
+          return 0;
+        }
+        if (key === "command" && typeof (value === "integer")) {
+          return value.toString();
+        } else {
+          return (isNaN(value) ? value : +value);
+        }
+      } else if (value === "" && key == "start_time") {
+        return "00:00";
+      } else {
+        return value;
+      }
+    }
+
+    const serverId = new URLSearchParams(document.location.search).get('id');
+    const schId = new URLSearchParams(document.location.search).get('sch_id');
+    $(document).ready(function () {
+      console.log("ready!");
+      $("#new_schedule_form").on("submit", async function (e) {
+        e.preventDefault();
+        const token = getCookie("_xsrf")
+        let schForm = document.getElementById("new_schedule_form");
+
+        let formData = new FormData(schForm);
+        formData.delete("difficulty");
+        //Create an object from the form data entries
+        let formDataObject = Object.fromEntries(formData.entries());
+        //We need to make sure these are sent regardless of whether or not they're checked
+        formDataObject.enabled = $("#enabled").prop('checked');
+        formDataObject.one_time = $("#one_time").prop('checked');
+        if ($("#difficulty").val() == "reaction") {
+          formDataObject.interval_type = "reaction";
+        }
+        if ($("#action").val() != "command") {
+          formDataObject.command = formDataObject.action + "_server";
+        }
+        if (formDataObject.cron_string != "") {
+          formDataObject.interval_type = '';
+        }
+        console.log(formDataObject);
+        // Format the plain form data as JSON
+        let formDataJsonString = JSON.stringify(formDataObject, replacer);
+
+        let data = JSON.parse(formDataJsonString)
+        if (data["action"] === "backup" && !data["action_id"]) {
+          return bootbox.alert("Validation Failed")
+        }
+
+        let res = await fetch(`/api/v2/servers/${serverId}/tasks/`, {
+          method: 'POST',
+          headers: {
+            'X-XSRFToken': token,
+            "Content-Type": "application/json",
+          },
+          body: formDataJsonString,
+        });
+        let responseData = await res.json();
+        if (responseData.status === "ok") {
+          window.location.href = `/panel/server_detail?id=${serverId}&subpage=schedules`;
+        } else {
+
+        bootbox.alert({
+          title: responseData.error,
+          message: responseData.error_data
+          });
+        }
+      });
+
+      $("#schedule_form").on("submit", async function (e) {
+        e.preventDefault();
+        const token = getCookie("_xsrf")
+        let schForm = document.getElementById("schedule_form");
+
+        let formData = new FormData(schForm);
+        formData.delete("difficulty");
+        //Create an object from the form data entries
+        let formDataObject = Object.fromEntries(formData.entries());
+        //We need to make sure these are sent regardless of whether or not they're checked
+        formDataObject.enabled = $("#enabled").prop('checked');
+        formDataObject.one_time = $("#one_time").prop('checked');
+        if ($("#difficulty").val() == "reaction") {
+          formDataObject.interval_type = "reaction";
+        }
+        if ($("#action").val() != "command") {
+          formDataObject.command = formDataObject.action + "_server";
+        }
+        if (formDataObject.cron_string != "") {
+          formDataObject.interval_type = '';
+        }
+        console.log(formDataObject);
+        // Format the plain form data as JSON
+        let formDataJsonString = JSON.stringify(formDataObject, replacer);
+
+        console.log(formDataJsonString);
+
+        let res = await fetch(`/api/v2/servers/${serverId}/tasks/${schId}`, {
+          method: 'PATCH',
+          headers: {
+            'X-XSRFToken': token,
+            "Content-Type": "application/json",
+          },
+          body: formDataJsonString,
+        });
+        let responseData = await res.json();
+        if (responseData.status === "ok") {
+          window.location.href = `/panel/server_detail?id=${serverId}&subpage=schedules`;
+        } else {
+
+          bootbox.alert({
+            title: responseData.error,
+            message: responseData.error_data
+          });
+        }
+      });
+
+    });
+
+    function yesnoCheck() {
+      if (document.getElementById('action').value == "command") {
+        document.getElementById("ifYes").classList.add("d-block");
+        document.getElementById("ifYes").classList.remove("d-none");
+        document.getElementById("command_input").required = true;
+      } else {
+        document.getElementById("ifYes").classList.add("d-none");
+        document.getElementById("ifYes").classList.remove("d-block");
+        document.getElementById("command_input").required = false;
+      }
+      if (document.getElementById('action').value == "backup") {
+        document.getElementById("ifBackup").classList.add("d-block");
+        document.getElementById("ifBackup").classList.remove("d-none");
+        document.getElementById("action_id").required = true;
+        $("#action_id_label").html($("#action_id_label").attr("data-backup-translate"));
+      } else {
+        document.getElementById("ifBackup").classList.remove("d-block");
+        document.getElementById("ifBackup").classList.add("d-none");
+        document.getElementById("action_id").required = false;
+        $("#action_id").val(null);
+        $("#action_id_label").html($("#action_id_label").attr("data-action-translate"));
+      }
+    }
+    function basicAdvanced() {
+      if (document.getElementById('difficulty').value == "advanced") {
+        document.getElementById("ifAdvanced").classList.add("d-block");
+        document.getElementById("ifReaction").classList.add("d-none");
+        document.getElementById("ifBasic").classList.add("d-none");
+        document.getElementById("ifAdvanced").classList.remove("d-none");
+        document.getElementById("ifReaction").classList.remove("d-block");
+        document.getElementById("ifBasic").classList.remove("d-block");
+        document.getElementById("delay").required = false;
+        document.getElementById("parent").required = false;
+        document.getElementById("interval").required = false;
+        document.getElementById("time").required = false;
+        document.getElementById("ifDays").classList.add("d-none");
+        document.getElementById("ifDays").classList.remove("d-block");
+      } else if (document.getElementById('difficulty').value == "reaction") {
+        document.getElementById("ifReaction").classList.add("d-block");
+        document.getElementById("ifBasic").classList.add("d-none");
+        document.getElementById("ifAdvanced").classList.add("d-none");
+        document.getElementById("ifReaction").classList.remove("d-none");
+        document.getElementById("ifBasic").classList.remove("d-block");
+        document.getElementById("ifAdvanced").classList.remove("d-block");
+        document.getElementById("delay").required = true;
+        document.getElementById("parent").required = true;
+        document.getElementById("interval").required = false;
+        document.getElementById("time").required = false;
+        document.getElementById("ifDays").classList.add("d-none");
+        document.getElementById("ifDays").classList.remove("d-block");
+        $("#cron").val("");
+      }
+      else {
+        document.getElementById("ifAdvanced").classList.add("d-none");
+        document.getElementById("ifReaction").classList.add("d-none");
+        document.getElementById("ifAdvanced").classList.remove("d-block");
+        document.getElementById("ifReaction").classList.remove("d-block");
+        document.getElementById("ifBasic").classList.add("d-block");
+        document.getElementById("ifBasic").classList.remove("d-none");
+        document.getElementById("delay").required = false;
+        document.getElementById("parent").required = false;
+        document.getElementById("interval").required = true;
+        document.getElementById("time").required = true;
+        ifDays();
+        $("#cron").val("");
+      }
+    }
+    function ifDays() {
+      if (document.getElementById('interval_type').value == "days") {
+        document.getElementById("ifDays").classList.add("d-block");
+        document.getElementById("ifDays").classList.remove("d-none");
+        document.getElementById("time").required = true;
+      } else {
+        document.getElementById("ifDays").classList.add("d-none");
+        document.getElementById("ifDays").classList.remove("d-block");
+        document.getElementById("time").required = false;
+      }
+    }
+
+    function startup() {
+      try {
+        document.getElementById("{{ data['schedule']['interval_type'] }}").setAttribute('selected', true);
+      } catch {
+        console.log("no element named")
+      }
+      try {
+        document.getElementById("{{ data['schedule']['difficulty'] }}").setAttribute('selected', true);
+      } catch {
+        console.log("no element named")
+      }
+      try {
+        document.getElementById("{{ data['schedule']['action'] }}").setAttribute('selected', true);
+
+      } catch {
+        console.log("no element named")
+      }
+      ifDays();
+      yesnoCheck();
+      basicAdvanced();
+      if ("{{ data['schedule']['enabled']  }}" == 'True') {
+        document.getElementById('enabled').checked = true;
+      } else {
+        document.getElementById('enabled').checked = false;
+      }
+      if ("{{ data['schedule']['one_time']  }}" == 'True') {
+        document.getElementById('one_time').checked = true;
+      } else {
+        document.getElementById('one_time').checked = false;
+      }
+    }
+
+    window.onload(startup())
+  </script>
+
+  {% end %}

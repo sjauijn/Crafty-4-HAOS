@@ -1,0 +1,78 @@
+.bootbox-custom-layout {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.bootbox-custom-layout .left-panel {
+    flex: 1;
+    text-align: center;
+}
+
+.bootbox-custom-layout .right-panel {
+    flex: 1;
+}
+
+.bootbox-custom-layout .qr-code {
+    width: 100%;
+    max-width: 200px;
+    /* Adjust as needed */
+    margin: auto;
+}
+
+.bootbox-custom-layout .list-group {
+    margin-top: 10px;
+}
+
+.bootbox .modal-dialog {
+    max-width: 900px;
+    /* Wider modal */
+}
+
+.wrong {
+    outline: 1px solid var(--danger);
+}
+
+.verified {
+    outline: 1px solid var(--success);
+}
+
+.copy-codes-btn {
+    width: 100%;
+    /* Full width of the row above */
+    margin-top: 10px;
+    transition: transform 0.2s ease, background-color 0.3s ease;
+}
+
+.copy-codes-btn:active {
+    transform: scale(0.95);
+    /* Slightly reduce size on click */
+    background-color: #007bff;
+    /* Optional: highlight button on click */
+}
+
+.copy-codes-btn.animate-outline {
+    animation: outline-trail 0.6s ease-out;
+}
+
+@keyframes outline-trail {
+    0% {
+        box-shadow: 0 0 0 0 rgba(0, 255, 0, 0.8);
+    }
+
+    50% {
+        box-shadow: 0 0 0 4px rgba(0, 255, 0, 0.5);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(0, 255, 0, 0);
+    }
+}
+
+.list-group-item {
+    background-color: var(--outline) !important;
+}
+
+#qrcode {
+    outline: 4px solid var(--info);
+}

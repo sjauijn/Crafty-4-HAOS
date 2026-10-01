@@ -1,0 +1,38 @@
+.sidebar {
+    height: 91vh;
+}
+
+.panel-settings {
+    color: var(--info) !important;
+}
+
+.mfa-warn {
+    text-align: center;
+}
+
+.mfa-warn-text {
+    line-height: 1.2;
+    border-radius: 10px;
+    padding: 5px;
+    margin: 5px;
+    outline: 3px solid var(--outline);
+}
+
+.mfa-warn-badge {
+    position: absolute;
+    -moz-transform: translate(-50%, -50%);
+    /* For Firefox */
+    -ms-transform: translate(-50%, -50%);
+    /* for IE */
+    -webkit-transform: translate(-50%, -50%);
+    /* For Safari, Chrome, iOS */
+    -o-transform: translate(-50%, -50%);
+}
+
+.mfa-light {
+    color: color-mix(in srgb, var(--warning) 20%, var(--danger) 80%);
+}
+
+.mfa-dark {
+    color: var(--warning);
+}

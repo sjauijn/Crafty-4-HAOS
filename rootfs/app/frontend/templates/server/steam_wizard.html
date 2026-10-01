@@ -1,0 +1,505 @@
+{% extends ../base.html %}
+
+{% block title %}Crafty Controller - {{ translate('serverWizard', 'newServer', data['lang']) }}{% end %}
+
+{% block content %}
+<link rel="stylesheet" href="/static/assets/css/vendors/bootstrap-select-1.13.18.css">
+
+<div class="content-wrapper" id="creation-wrapper">
+  <ul class="nav nav-pills tab-simple-styled " role="tablist">
+    <li class="nav-item term-nav-item">
+      <a class="nav-link" href="/server/step1" role="tab" aria-selected="false">
+        <i class="ph-fill ph-file-text"></i>Minecraft-Java</a>
+    </li>
+    <li class="nav-item term-nav-item">
+      <a class="nav-link" href="/server/bedrock_step1" role="tab" aria-selected="false">
+        <i class="ph-fill ph-file-text"></i>Minecraft-Bedrock</a>
+    </li>
+    <li class="nav-item term-nav-item">
+      <a class="nav-link" href="/server/hytale_step1" role="tab" aria-selected="false">
+        <i class="ph-fill ph-file-text"></i>Hytale</a>
+    </li>
+    {% if data.get("experimental") %}
+    <li class="nav-item term-nav-item">
+      <a class="nav-link active" href="/server/steam_cmd_step1" role="tab" aria-selected="false">
+        <i class="ph-fill ph-file-text"></i>Steam-CMD&nbsp;<span id="steam-badge"
+          title="{{translate('serverWizard', 'experimentalFeature', data['lang'])}}" class="text-primary"><i
+            class="ph ph-flask"></i></span></a>
+    </li>
+    {% end %}
+  </ul>
+  <div class="d-none" id="overlay" onclick="hide(event)"></div>
+  <div class="row">
+    <div class="col-sm-6 grid-margin stretch-card">
+      <div class="card">
+        <div class="card-body parent">
+          <h4 class="ribbon">{{ translate("serverWizard", "experimental", data["lang"])}}</h4>
+
+          <h4>{{ translate('serverWizard', 'newServer', data['lang']) }}</h4>
+          <br />
+          <p class="card-description">
+          <form method="submit" id="server_creation" class="server-wizard">
+            {% if data["server_api"] and data["online"] %}
+            <fieldset>
+              {% else %}
+              <fieldset disabled="disabled">
+                {% end %}
+                <div class="row">
+                  <div class="col-sm-12">
+                    <div class="form-group">
+                      <label for="server_jar">{{ translate('serverWizard', 'serverType', data['lang'])
+                        }}</label></br>
+                      <div class="input-group">
+                        <select data-container="body" required
+                          class="selectpicker form-control form-control-lg select-css" id="steam_server"
+                          data-live-search="true" name="app_id">
+                          <option value="None">None</option>
+                          {% for s in data['servers'] %}
+                          {% if data["windows"] and data["os"].WINDOWS in s.os %}
+                          <option value="{{ s.id }}">{{ s.name.capitalize() }}</option>
+                          {% elif not data["windows"] and data["os"].LINUX in s.os %}
+                          <option value="{{ s.id }}">{{ s.name.capitalize() }}</option>
+                          {% end %}
+                          {% end %}
+                        </select>
+
+                        {% if data['super_user'] %}
+                        <div class="input-group-append">
+                          <button class="btn custom-picker" type="button" onclick="refreshCache()"><i id="refresh-cache"
+                              class="refresh-class ph ph-arrows-clockwise"></i></button>
+                        </div>
+                        {% end %}
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-sm-12">
+                    <div class="form-group">
+                      <label for="server_name">{{ translate('serverWizard', 'serverName', data['lang']) }}</label>
+                      <input type="text" class="form-control" id="server_name" name="name"
+                        placeholder="{{ translate('serverWizard', 'myNewServer', data['lang']) }}" required>
+                    </div>
+                  </div>
+                </div>
+                <br />
+                <h4 class="card-title">{{ translate('serverWizard', 'quickSettings', data['lang']) }} <small
+                    style="text-transform: none;"> - {{ translate('serverWizard', 'quickSettingsDescription',
+                    data['lang']) }}</small></h4>
+                <hr>
+                <script>
+                  function searchBar() {
+                    var input, filter, select, options, i, txtValue;
+                    input = document.getElementById("search_bar");
+                    filter = input.value.toUpperCase();
+                    select = document.getElementById("steam_server");
+                    options = select.getElementsByTagName("option");
+                    for (i = 0; i < options.length; i++) {
+                      txtValue = options[i].innerText;
+                      if (txtValue.toUpperCase().includes(filter) > -1) {
+                        options[i].style.display = "";
+                      } else {
+                        options[i].style.display = "none";
+                      }
+                    }
+                  }
+                </script>
+                <div class="row">
+                  <div class="col-sm-12">
+                    <div class="form-group">
+                      {% include "../panel/parts/role_select.html" %}
+                    </div>
+                  </div>
+
+                </div>
+                <button type="submit" class="btn btn-primary mr-2">{{ translate('serverWizard', 'buildServer',
+                  data['lang']) }}</button>
+                <button type="reset" class="btn btn-danger mr-2">{{ translate('serverWizard', 'resetForm', data['lang'])
+                  }}</button>
+              </fieldset>
+          </form>
+          </p>
+        </div>
+        {% if not data["server_api"] and data["online"] %}
+        <div class="api-alert">
+          <p><i class="ph ph-warning"></i>&nbsp;{{
+            translate('error', 'bigBucket1', data['lang']) }}<a
+              href="https://status.craftycontrol.com/status/craftycontrol" target="_blank" rel="noopener">&nbsp;{{
+              translate('error',
+              'craftyStatus', data['lang']) }}</a>
+            &nbsp;{{ translate('error', 'bigBucket2', data['lang']) }}</br></br><small>{{ translate('error', 'selfHost',
+              data['lang'])}}</small></p>
+        </div>
+        {% end %}
+        {% if not data["online"] %}
+        <div class="api-alert">
+          <p><i class="ph ph-warning"></i>&nbsp;{{ translate('error', 'noInternet', data['lang']) }}</p>
+        </div>
+        {% end %}
+      </div>
+    </div>
+  </div>
+</div>
+<link rel="stylesheet" href="/static/assets/css/partial/crafty-wizard.css">
+<style>
+  .ribbon {
+    margin: -10px;
+    padding: 0;
+    background: rebeccapurple;
+    color: white;
+    padding: 1em 0;
+    position: absolute;
+    top: 0;
+    right: 0;
+    transform: translateX(30%) translateY(0%) rotate(45deg);
+    transform-origin: top left;
+  }
+
+  .parent {
+    overflow: hidden;
+    /* required */
+    position: relative;
+    /* required  for demo*/
+  }
+
+  .ribbon:before,
+  .ribbon:after {
+    content: '';
+    position: absolute;
+    top: 0;
+    margin: 0 -1px;
+    /* tweak */
+    width: 100%;
+    height: 100%;
+    background: rebeccapurple;
+  }
+
+  .ribbon:before {
+    right: 100%;
+  }
+
+  .ribbon:after {
+    left: 100%;
+  }
+
+  .steam::after {
+    content: 'BETA';
+    font-size: 10px;
+    vertical-align: top;
+  }
+
+  .refresh-class:hover {
+    cursor: grab;
+  }
+
+  .scroll {
+    max-height: 12em;
+    overflow-y: auto;
+  }
+
+  .menu-btn {
+    font-size: 0.9em;
+    padding: 2px 10px;
+  }
+
+  .menu {
+    padding-top: 10px;
+    z-index: 200;
+    margin-top: 4px;
+    position: absolute;
+    background-color: var(--card-banner-bg);
+  }
+
+  .menu-option {
+    padding: 6px 20px 6px;
+    color: white;
+  }
+
+  #overlay {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 100%;
+    height: 100%;
+    z-index: 100;
+  }
+</style>
+<style>
+  /* Remove default bullets */
+  .tree-view,
+  .tree-nested {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    margin-left: 10px;
+  }
+
+  /* Style the items */
+  .tree-item,
+  .files-tree-title {
+    cursor: pointer;
+    user-select: none;
+    /* Prevent text selection */
+  }
+
+  /* Create the caret/arrow with a unicode, and style it */
+  .tree-caret .ph-folder {
+    display: inline-block;
+  }
+
+  .tree-caret .ph-folder-open {
+    display: none;
+  }
+
+  /* Rotate the caret/arrow icon when clicked on (using JavaScript) */
+  .tree-caret-down .ph-folder {
+    display: none;
+  }
+
+  .tree-caret-down .ph-folder-open {
+    display: inline-block;
+  }
+
+  /* Hide the nested list */
+  .tree-nested {
+    display: none;
+  }
+
+  #op_logo {
+    position: relative;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+</style>
+<style>
+  .scroll {
+    max - height: 12em;
+    overflow - y: auto;
+  }
+
+  .menu - btn {
+    font - size: 0.9em;
+    padding: 2px 10px;
+  }
+
+  .menu {
+    padding - top: 10px;
+    z - index: 200;
+    margin - top: 4px;
+    position: absolute;
+    background - color: #2a2c44;
+  }
+
+  .menu - option {
+    padding: 6px 20px 6px;
+    color: white;
+  }
+
+  #overlay {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 100 %;
+    height: 100 %;
+    z - index: 100;
+  }
+</style>
+<style>
+  /* Remove default bullets */
+  .tree-view,
+  .tree-nested {
+    list - style - type: none;
+    margin: 0;
+    padding: 0;
+    margin-left: 10px;
+  }
+
+  /* Style the items */
+  .tree-item,
+  .files-tree-title {
+    cursor: pointer;
+    user-select: none;
+    /* Prevent text selection */
+  }
+
+  /* Create the caret/arrow with a unicode, and style it */
+  .tree-caret .ph-folder {
+    display: inline-block;
+  }
+
+  .tree-caret .ph-folder-open {
+    display: none;
+  }
+
+  /* Rotate the caret/arrow icon when clicked on (using JavaScript) */
+  .tree-caret-down .ph-folder {
+    display: none;
+  }
+
+  .tree-caret-down .ph-folder-open {
+    display: inline-block;
+  }
+
+  /* Hide the nested list */
+  .tree-nested {
+    display: none;
+  }
+
+  #op_logo {
+    position: relative;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+</style>
+</style>
+
+{% end %}
+
+{% block js%}
+
+{% end %}
+
+{% block js %}
+
+<script>
+  async function send_server(data) {
+    let token = getCookie("_xsrf")
+    let res = await fetch(`/api/v2/servers/`, {
+      method: 'POST',
+      headers: {
+        'X-XSRFToken': token
+      },
+      body: data,
+    });
+    let responseData = await res.json();
+    if (responseData.status === "ok") {
+      globalThis.location.href = '/panel/dashboard';
+    } else {
+
+      bootbox.alert({
+        title: responseData.error,
+        message: responseData.error_data
+      });
+    }
+  }
+
+  async function refreshCache() {
+    document.getElementById("refresh-cache").classList.add("ph-spin")
+    let token = getCookie("_xsrf")
+    let res = await fetch(`/api/v2/crafty/SteamCache/`, {
+      method: 'GET',
+      headers: {
+        'X-XSRFToken': token
+      },
+    });
+    let responseData = await res.json();
+    if (responseData.status === "ok") {
+      document.getElementById("refresh-cache").classList.remove("ph-arrows-clockwise");
+      document.getElementById("refresh-cache").classList.remove("ph-spin");
+      document.getElementById("refresh-cache").classList.add("ph-check");
+      setTimeout(() => {
+        location.reload();
+      }, 2000);
+    } else {
+
+      bootbox.alert({
+        title: responseData.error,
+        message: responseData.error
+      });
+    }
+  }
+
+  $("#server_creation").on("submit", async function (e) {
+    wait_msg();
+    e.preventDefault();
+    let jarForm = document.getElementById("server_creation");
+
+    let formData = new FormData(jarForm);
+    //Create an object from the form data entries
+    let formDataObject = Object.fromEntries(formData.entries());
+    console.log(formDataObject);
+    let send_data = {
+      "name": formDataObject.name,
+      "roles": calcRoles(),
+      "monitoring_type": "steam_cmd",
+      "steam_cmd_monitoring_data": {
+        "host": "127.0.0.1",
+        "port": "27015"
+      },
+      "create_type": "steam_cmd",
+      "steam_cmd_create_data": {
+        "create_type": "download_exe",
+        "download_exe_create_data": {
+          "app_id": formDataObject.app_id,
+        }
+      }
+    }
+    console.log(send_data);
+    // Format the plain form data as JSON
+    let formDataJsonString = JSON.stringify(send_data, replacer);
+
+    console.log(formDataJsonString);
+    send_server(formDataJsonString);
+  });
+  function replacer(key, value) {
+    if (key === "roles") {
+      return value
+    }
+    if (key != "ignored_exits") {
+      if (typeof value == "boolean" || key === "host" || key === "version") {
+        return value
+      } else {
+        return (isNaN(value) ? value : +value);
+      }
+    } else {
+      return value;
+    }
+  }
+  function calcRoles() {
+    let role_ids = $('.roles').map(function () {
+      if ($(this).is(':checked')) {
+        return $(this).val();
+      }
+    }).get();
+    console.log(role_ids)
+    return role_ids
+  }
+  function dropDown(event) {
+    event.target.parentElement.children[1].classList.remove("d-none");
+    document.getElementById("overlay").classList.remove("d-none");
+  }
+
+  function hide(event) {
+    var items = document.getElementsByClassName('menu');
+    items.forEach(item => {
+      item.classList.add("d-none");
+    })
+
+    document.getElementById("overlay").classList.add("d-none");
+  }
+
+  $(document).ready(function () {
+    console.log('ready');
+    var forms = $('form.server-wizard');
+    forms.each(function (i, formEl) {
+      var form = $(formEl);
+      var min = form.find('[name=min_memory]');
+      var max = form.find('[name=max_memory]');
+      console.log(form, min, max)
+      min.change(function () {
+        check_sizes(max, min, 'min');
+      });
+      max.change(function () {
+        check_sizes(max, min, 'max');
+      });
+    });
+  });
+
+  function wait_msg(importing) {
+    bootbox.alert({
+      title: importing ? '{% raw translate("serverWizard", "importing", data["lang"]) %}' : '{% raw translate("serverWizard", "downloading", data["lang"]) %}',
+      message: '<i class="ph ph-cloud-arrow-down"></i> {% raw translate("serverWizard", "bePatient", data["lang"]) %}',
+    });
+  }
+
+</script>
+<script src="/static/assets/vendors/js/bootstrap-select.min.js"></script>
+{% end %}

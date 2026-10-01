@@ -1,0 +1,36 @@
+/**************************************************************/
+/* CSS for Page Footer */
+/**************************************************************/
+a:hover {
+    text-decoration: none;
+}
+
+.blink-text {
+    color: var(--base-text);
+    font-weight: bold;
+    font-size: 2rem;
+    animation: blinkingText 2s infinite;
+}
+
+@keyframes blinkingText {
+    0% {
+        color: var(--base-text);
+    }
+
+    50% {
+        color: var(--red);
+    }
+
+    100% {
+        color: var(--base-text);
+    }
+}
+
+#kofiframe {
+    border: none;
+    width: 100%;
+    padding: 4px;
+    background: var(--deep-bg);
+}
+
+/**************************************************************/

@@ -1,0 +1,679 @@
+{% extends ../base.html %}
+
+{% block meta %}
+<!-- Date Range Picker CSS -->
+<link rel="stylesheet" href="/static/assets/vendors/vanilla-datetimerange-picker/vanilla-datetimerange-picker.css">
+{% end %}
+
+{% block title %}Crafty Controller - {{ translate('serverDetails', 'serverDetails', data['lang']) }}{% end %}
+
+{% block content %}
+
+<div class="content-wrapper">
+
+  <!-- Page Title Header Starts-->
+  <div class="row page-title-header">
+    <div class="col-12">
+      <div class="page-header">
+        <h4 class="page-title">
+          {{ translate('serverDetails', 'serverDetails', data['lang']) }} - {{
+          data['server_stats']['server_id']['server_name'] }}
+          <br />
+          <small>UUID: {{ data['server_stats']['server_id']['server_id'] }}</small>
+        </h4>
+      </div>
+    </div>
+
+  </div>
+  <!-- Page Title Header Ends-->
+
+  {% include "parts/details_stats.html %}
+
+  <div class="row">
+
+    <div class="col-sm-12 grid-margin">
+      <div class="card">
+        <div class="card-body  pt-0">
+          <span class="d-none d-sm-block">
+            {% include "parts/server_controls_list.html %}
+          </span>
+          <span class="d-block d-sm-none">
+            {% include "parts/m_server_controls_list.html %}
+          </span>
+
+          <!-- Time Range Selector -->
+          <div class="col-12 col-md-8 col-lg-6">
+            <div class="form-group">
+              <label for="date-range">Time Period</label>
+              <input type="text" class="form-control" id="date-range" inputmode="none" placeholder="Select time range...">
+              <small class="form-text text-muted">
+                Server timezone (UTC{% if utc_offset >= 0 %}+{% end %}{{ utc_offset }})
+              </small>
+            </div>
+          </div>
+          <button class="btn btn-outline-success reset-button float-right d-none" id="reset-button" hidden><i class="ph-fill ph-arrow-counter-clockwise"></i>&nbsp;{{ translate('serverMetrics', 'resetZoom', data['lang'])
+            }}</button>
+          {% if data['user_data']['hints'] %}
+          <span data-html="true" class="hints text-center" title="<i class='ph-fill ph-info'></i> " , data-content="{{
+            translate('serverMetrics', 'zoomHint1' , data['lang'])}} <br> <br> {{ translate('serverMetrics', 'zoomHint2', data['lang'])}}" , data-placement="top"></span>
+          {% end %}
+          <div class="chart-wrapper">
+            <canvas id="lineChart"></canvas>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+
+</div>
+<style>
+  .chart-wrapper {
+    height: 65vh;
+  }
+
+  /* Date range picker - Crafty theme integration */
+  .daterangepicker {
+    font-family: var(--font-family-sans-serif);
+    background-color: var(--card-banner-bg);
+    border-color: var(--outline);
+    color: var(--base-text);
+  }
+
+  .daterangepicker:after {
+    border-bottom-color: var(--card-banner-bg);
+  }
+
+  .daterangepicker:before {
+    border-bottom-color: var(--outline);
+  }
+
+  .daterangepicker .calendar-table {
+    background-color: var(--card-banner-bg);
+    border-color: var(--card-banner-bg);
+  }
+
+  .daterangepicker .calendar-table th,
+  .daterangepicker .calendar-table td {
+    color: var(--base-text);
+  }
+
+  .daterangepicker .calendar-table .next span,
+  .daterangepicker .calendar-table .prev span {
+    border-color: var(--base-text);
+  }
+
+  .daterangepicker td.available:hover,
+  .daterangepicker th.available:hover {
+    background-color: var(--deep-bg);
+    color: var(--base-text);
+  }
+
+  .daterangepicker td.off,
+  .daterangepicker td.off.in-range,
+  .daterangepicker td.off.start-date,
+  .daterangepicker td.off.end-date {
+    background-color: var(--card-banner-bg);
+    color: var(--gray);
+  }
+
+  .daterangepicker td.in-range {
+    background-color: var(--deep-bg);
+    color: var(--base-text);
+  }
+
+  .daterangepicker td.active,
+  .daterangepicker td.active:hover {
+    background-color: var(--primary);
+    color: var(--white);
+  }
+
+  .daterangepicker td.disabled,
+  .daterangepicker td.disabled:hover {
+    color: var(--outline);
+    text-decoration: line-through;
+    opacity: 0.35;
+  }
+
+  .daterangepicker td.available {
+    color: var(--base-text);
+    font-weight: 500;
+  }
+
+  .daterangepicker th.month {
+    color: var(--base-text);
+    font-weight: 600;
+  }
+
+  .daterangepicker select.monthselect,
+  .daterangepicker select.yearselect {
+    background-color: var(--deep-bg);
+    color: var(--base-text);
+    border: 1px solid var(--outline);
+  }
+
+  .daterangepicker select.hourselect,
+  .daterangepicker select.minuteselect,
+  .daterangepicker select.secondselect,
+  .daterangepicker select.ampmselect {
+    background-color: var(--deep-bg);
+    color: var(--base-text);
+    border: 1px solid var(--outline);
+    border-radius: 4px;
+    padding: 3px 4px;
+    font-weight: 500;
+  }
+
+  .daterangepicker select.hourselect:focus,
+  .daterangepicker select.minuteselect:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.25);
+    outline: none;
+  }
+
+  .daterangepicker option {
+    background-color: var(--card-banner-bg);
+    color: var(--base-text);
+  }
+
+  .daterangepicker option.disabled {
+    color: var(--outline);
+    opacity: 0.35;
+  }
+
+  .daterangepicker .calendar-time {
+    color: var(--base-text);
+    border-top: 1px solid var(--outline);
+    margin-top: 8px;
+    padding-top: 4px;
+  }
+
+  .daterangepicker .calendar-time select.disabled {
+    color: var(--outline);
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+
+  .daterangepicker .drp-buttons {
+    border-top-color: var(--outline);
+  }
+
+  .daterangepicker .drp-buttons .btn {
+    font-size: 12px;
+    font-weight: bold;
+    padding: 4px 8px;
+    border-radius: 4px;
+  }
+
+  .daterangepicker .drp-buttons .btn.applyBtn {
+    background-color: var(--primary);
+    border-color: var(--primary);
+    color: var(--white);
+  }
+
+  .daterangepicker .drp-buttons .btn.applyBtn:hover {
+    opacity: 0.85;
+  }
+
+  .daterangepicker .drp-buttons .btn.cancelBtn {
+    background-color: transparent;
+    border: 1px solid var(--outline);
+    color: var(--base-text);
+  }
+
+  .daterangepicker .drp-buttons .btn.cancelBtn:hover {
+    background-color: var(--deep-bg);
+  }
+
+  .daterangepicker .drp-selected {
+    color: var(--base-text);
+  }
+
+  /* Border between left/right calendars */
+  .daterangepicker.show-ranges.ltr .drp-calendar.left,
+  .daterangepicker.show-ranges.single.ltr .drp-calendar.left {
+    border-left-color: var(--outline);
+  }
+
+  .daterangepicker .drp-calendar.left .calendar-table {
+    border-right-color: var(--outline);
+  }
+
+  /* Drop-up arrow colors */
+  .daterangepicker.drop-up:before {
+    border-top-color: var(--outline);
+  }
+
+  .daterangepicker.drop-up:after {
+    border-top-color: var(--card-banner-bg);
+  }
+
+  /* Ranges sidebar */
+  .daterangepicker .ranges li {
+    color: var(--base-text);
+  }
+
+  .daterangepicker .ranges li:hover {
+    background-color: var(--deep-bg);
+    color: var(--base-text);
+  }
+
+  .daterangepicker .ranges li.active {
+    background-color: var(--primary);
+    color: var(--white);
+  }
+
+  .daterangepicker.show-ranges.ltr .drp-calendar.left {
+    border-left: 1px solid var(--outline);
+  }
+
+  /* Mobile full-screen overlay theme */
+  @media (max-width: 563px) {
+    .daterangepicker {
+      background-color: var(--card-banner-bg);
+    }
+  }
+
+</style>
+<!-- Date Range Picker JS -->
+<script src="/static/assets/vendors/vanilla-datetimerange-picker/vanilla-datetimerange-picker.js"></script>
+<!-- Chart.js time-axis adapter (must load after moment.js from details_stats.html) -->
+<script src="/static/assets/vendors/js/chartjs-adapter-moment.min.js"></script>
+<script type="text/javascript">
+  const serverId = new URLSearchParams(document.location.search).get('id');
+  var zoomed = false;
+
+  // Server timezone offset in hours (e.g., -5 for EST, 0 for UTC)
+  const serverTimezoneOffset = {{ utc_offset }};
+
+  // Detect if viewing custom date range (historical mode)
+  const isCustomRange = {% if data.get('range_mode') == 'custom' %}true{% else %}false{% end %};
+
+  // Build picker options
+  const earliestDate = {% if data.get('earliest_metrics_date') %}"{{ data['earliest_metrics_date'] }}"{% else %}null{% end %};
+
+  // Server "now" - use UTC converted to server-local offset
+  function serverNow() {
+    return moment.utc().utcOffset(serverTimezoneOffset);
+  }
+
+  // Build preset ranges dynamically from config
+  const configPresets = {% raw json_encode(data.get('time_range_presets', [])) %};
+  const presetRanges = {};
+  const presetHours = {};
+  configPresets.forEach(function(preset) {
+    presetRanges[preset.label] = [serverNow().subtract(preset.hours, 'hours'), serverNow()];
+    presetHours[preset.label] = preset.hours;
+  });
+
+  const pickerOpts = {
+    timePicker: true,
+    timePicker24Hour: true,
+    timePickerSeconds: false,
+    maxDate: moment.utc().utcOffset(serverTimezoneOffset),
+    ranges: presetRanges,
+    alwaysShowCalendars: true,
+    locale: {
+      format: 'YYYY-MM-DD HH:mm',
+      separator: ' - ',
+      customRangeLabel: 'Custom Range',
+    },
+    opens: 'right',
+    drops: 'auto',
+    autoApply: false,
+  };
+
+  if (earliestDate) {
+    pickerOpts.minDate = moment(earliestDate);
+  }
+
+  // Set initial dates from current view
+  const startTimeSaved = {% if data.get('start_time') %}"{{ data['start_time'] }}"{% else %}null{% end %};
+  const endTimeSaved = {% if data.get('end_time') %}"{{ data['end_time'] }}"{% else %}null{% end %};
+
+  if (isCustomRange && startTimeSaved && endTimeSaved) {
+    pickerOpts.startDate = moment(startTimeSaved);
+    pickerOpts.endDate = moment(endTimeSaved);
+  } else {
+    // Default to current preset range
+    const currentHours = {{ data.get('selected_hours', 24) }};
+    pickerOpts.startDate = serverNow().subtract(currentHours, 'hours');
+    pickerOpts.endDate = serverNow();
+  }
+
+  // Navigate: preset uses ?hours= param, custom uses ?start=&end=
+  function navigateToRange(start, end, label) {
+    if (label && presetHours[label]) {
+      window.location.href = "/panel/server_detail?id=" + serverId +
+        "&hours=" + presetHours[label] + "&subpage=metrics";
+    } else {
+      const fmt = 'YYYY-MM-DDTHH:mm:ss';
+      window.location.href = "/panel/server_detail?id=" + serverId +
+        "&start=" + encodeURIComponent(start.format(fmt)) +
+        "&end=" + encodeURIComponent(end.format(fmt)) +
+        "&subpage=metrics";
+    }
+  }
+
+  // Initialize the date range picker
+  const picker = new DateRangePicker('date-range', pickerOpts, function(start, end, label) {
+    navigateToRange(start, end, label);
+  });
+
+  // Allow typing a range manually and pressing Enter
+  document.getElementById('date-range').addEventListener('keydown', function(e) {
+    if (e.keyCode !== 13) return;
+
+    const parts = this.value.split(' - ');
+    if (parts.length !== 2) return;
+
+    const startLocal = moment(parts[0].trim(), 'YYYY-MM-DD HH:mm');
+    const endLocal = moment(parts[1].trim(), 'YYYY-MM-DD HH:mm');
+
+    if (startLocal.isValid() && endLocal.isValid() && endLocal.isAfter(startLocal)) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      navigateToRange(startLocal, endLocal);
+    }
+  }, true);
+
+
+  // Helper: Safe bytes to GB conversion
+  function bytesToGB(bytes) {
+    return bytes > 0 ? parseFloat((bytes / (1024 * 1024 * 1024)).toFixed(2)) : 0;
+  }
+
+  // Use pre-formatted chart data from backend
+  const chartData = {% raw json.dumps(data['chart_data']) %};
+  const rawDates = chartData.dates || [];
+  const rawPlayers = chartData.players || [];
+  const rawRamPercent = chartData.ram_percent || [];
+  const rawRamGb = chartData.ram_gb || [];
+  const rawCpu = chartData.cpu || [];
+
+  // Build {x, y} point arrays for time-axis decimation
+  // parsing:false requires numeric timestamps (ms) for x values
+  const dateFormat = 'YYYY/MM/DD, HH:mm:ss';
+
+  // Parse server-local time string as a numeric timestamp.
+  // moment() interprets the string in browser-local time, which means
+  // Chart.js displays the server's clock time on the x-axis.
+  function parseServerTime(dateStr) {
+    return moment(dateStr, dateFormat).valueOf();
+  }
+
+  // Build a cutoff timestamp using the same parsing path so trimming
+  // comparisons are consistent regardless of browser/server timezone.
+  function serverCutoff(hours) {
+    return moment(serverNow().subtract(hours, 'hours').format(dateFormat), dateFormat).valueOf();
+  }
+
+  const timestamps = rawDates.map(d => parseServerTime(d));
+  const playerData = timestamps.map((t, i) => ({x: t, y: rawPlayers[i]}));
+  const ramPercentData = timestamps.map((t, i) => ({x: t, y: rawRamPercent[i]}));
+  const ramGbData = timestamps.map((t, i) => ({x: t, y: rawRamGb[i]}));
+  const cpuData = timestamps.map((t, i) => ({x: t, y: rawCpu[i]}));
+
+  // Compute decimation samples based on chart width (~1 point per 3 CSS pixels)
+  function getDecimationSamples() {
+    var canvas = document.getElementById("lineChart");
+    var width = canvas.clientWidth || canvas.offsetWidth || 800;
+    return Math.max(60, Math.round(width / 3));
+  }
+
+  // Create chart with dual Y-axes and time-based x-axis
+  var ctxL = document.getElementById("lineChart").getContext('2d');
+  var hist_chart = new Chart(ctxL, {
+    type: 'line',
+    data: {
+      datasets: [
+        {
+          label: "CPU %",
+          data: cpuData,
+          borderColor: 'rgba(255, 175, 0, .7)',
+          borderWidth: 2,
+          lineTension: 0,
+          spanGaps: false,
+          yAxisID: 'y-left',
+        },
+        {
+          label: "RAM %",
+          data: ramPercentData,
+          borderColor: 'rgba(33, 150, 243, .8)',
+          borderWidth: 2,
+          lineTension: 0,
+          spanGaps: false,
+          yAxisID: 'y-left',
+        },
+        {
+          label: "RAM GB",
+          data: ramGbData,
+          borderColor: 'rgba(0, 188, 212, .9)',
+          borderWidth: 2,
+          lineTension: 0,
+          spanGaps: false,
+          yAxisID: 'y-right',
+        },
+        {
+          label: "Players",
+          data: playerData,
+          borderColor: 'rgba(136, 98, 224, .7)',
+          borderWidth: 2,
+          lineTension: 0,
+          spanGaps: false,
+          yAxisID: 'y-right',
+        },
+      ]
+    },
+    options: {
+      maintainAspectRatio: false,
+      parsing: false,
+      onResize(chart, size) {
+        var newSamples = Math.max(60, Math.round(size.width / 3));
+        chart.options.plugins.decimation.samples = newSamples;
+        chart.options.plugins.decimation.threshold = newSamples;
+      },
+      plugins: {
+        decimation: {
+          enabled: true,
+          algorithm: 'lttb',
+          samples: getDecimationSamples(),
+          threshold: getDecimationSamples(),
+        },
+        zoom: {
+          zoom: {
+            onZoom() {
+              document.getElementById("reset-button").classList.remove("d-none");
+              document.getElementById("reset-button").classList.add("d-block");
+              zoomed = true;
+            },
+            wheel: {
+              enabled: true,
+              modifierKey: 'shift',
+            },
+            drag: {
+              enabled: true,
+              modifierKey: "shift"
+            },
+            pinch: {
+              enabled: true
+            },
+            mode: 'x',
+          },
+          pan: {
+            enabled: true,
+            mode: "x",
+            threshold: 1,
+          }
+        },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              let label = context.dataset.label || '';
+              if (label) label += ': ';
+
+              // Format based on metric type
+              if (context.dataset.label === 'RAM GB') {
+                label += parseFloat(context.parsed.y).toFixed(2) + ' GB';
+              } else if (context.dataset.label === 'Players') {
+                label += Math.round(context.parsed.y);
+              } else {
+                label += context.parsed.y.toFixed(1) + '%';
+              }
+              return label;
+            }
+          }
+        }
+      },
+      responsive: true,
+      scales: {
+        'y-left': {
+          type: 'linear',
+          position: 'left',
+          min: 0,
+          title: {
+            display: true,
+            text: 'Percentage (%)'
+          },
+          grid: {
+            display: true
+          }
+        },
+        'y-right': {
+          type: 'linear',
+          position: 'right',
+          min: 0,
+          title: {
+            display: true,
+            text: 'Count / GB'
+          },
+          grid: {
+            display: false
+          }
+        },
+        x: {
+          type: 'time',
+          time: {
+            displayFormats: {
+              minute: 'HH:mm',
+              hour: 'MMM D, HH:mm',
+              day: 'MMM D',
+            }
+          },
+          position: 'bottom',
+        }
+      }
+    }
+  });
+
+  $(window).ready(function () {
+    $('body').click(function () {
+      $('.hints').popover("hide");
+    });
+  });
+
+  // WebSocket updates and reset button
+
+  const samplingTiers = {% raw json_encode(data.get('sampling_tiers', [])) %};
+  const samplingFallbackDivisor = {{ data.get('sampling_fallback_divisor', 12) }};
+
+  // Match live update frequency to historical data interval.
+  // The backend records stats every 30 seconds; adaptive sampling then
+  // keeps every Nth point depending on the selected time range.
+  function getLiveIntervalMs(hours) {
+    var sampleRate = null;
+    if (samplingTiers.length > 0) {
+      var sorted = samplingTiers.slice().sort(function(a, b) { return a.max_hours - b.max_hours; });
+      for (var i = 0; i < sorted.length; i++) {
+        if (hours <= sorted[i].max_hours) {
+          sampleRate = Math.max(1, sorted[i].sample_rate);
+          break;
+        }
+      }
+      if (sampleRate === null) {
+        sampleRate = Math.max(1, Math.floor(hours / samplingFallbackDivisor));
+      }
+    } else {
+      // Legacy fallback
+      if (hours <= 6)       sampleRate = 1;
+      else if (hours <= 24) sampleRate = 2;
+      else if (hours <= 72) sampleRate = 6;
+      else                  sampleRate = Math.max(1, Math.floor(hours / 12));
+    }
+    return sampleRate * 30 * 1000;  // base recording period is 30 s
+  }
+
+  $(document).ready(function () {
+    if ($(window).width() > 1000) {
+      $('[data-toggle="popover"]').popover();
+      $('.hints').popover("show");
+    }
+
+    const currentHours = {{ data.get('selected_hours', 24) }};
+    const liveInterval = getLiveIntervalMs(currentHours);
+    var lastPushedTs = cpuData.length
+        ? cpuData[cpuData.length - 1].x
+        : 0;
+
+    webSocket.on('update_server_details', function (data) {
+      // Skip live updates when viewing custom historical range
+      if (isCustomRange) {
+        return;
+      }
+
+      // Validate required fields before updating
+      if (!data || !data.created || data.cpu === undefined ||
+          data.mem_raw === undefined || data.mem_percent === undefined) {
+        console.warn('Incomplete server stats update received, skipping');
+        return;
+      }
+
+      const ts = parseServerTime(data.created);
+
+      // Throttle: only push a point when enough time has elapsed to
+      // match the historical data frequency for this time range.
+      if (ts - lastPushedTs < liveInterval) {
+        return;
+      }
+      lastPushedTs = ts;
+
+      {% if 'minecraft-java' in data['server_stats']['server_type'] or 'hytale' in data['server_stats']['server_type'] %}
+      playerData.push({x: ts, y: data.online !== undefined ? data.online : null});
+      {% end %}
+      cpuData.push({x: ts, y: data.cpu});
+      ramPercentData.push({x: ts, y: data.mem_percent});
+      ramGbData.push({x: ts, y: bytesToGB(data.mem_raw)});
+
+      // Sliding window: trim data older than the selected time range
+      if (!zoomed) {
+        const cutoff = serverCutoff(currentHours);
+        while (cpuData.length > 1 && cpuData[0].x < cutoff) {
+          playerData.shift();
+          ramPercentData.shift();
+          ramGbData.shift();
+          cpuData.shift();
+        }
+      }
+
+      hist_chart.update();
+
+      // Update the picker's displayed range to reflect live data
+      picker.maxDate = serverNow();
+      picker.setStartDate(serverNow().subtract(currentHours, 'hours'));
+      picker.setEndDate(serverNow());
+      picker.updateElement();
+    });
+
+    $(".reset-button").click(function () {
+      console.log("resetting zoom");
+      zoomed = false;
+      hist_chart.resetZoom();
+      document.getElementById("reset-button").classList.add("d-none");
+      document.getElementById("reset-button").classList.remove("d-block");
+    });
+  });
+</script>
+
+{% end %}

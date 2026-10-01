@@ -1,0 +1,20 @@
+.collapse {
+    padding-left: 1vw;
+    padding-right: 1vw
+}
+
+.right {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    cursor: pointer;
+    z-index: 10;
+}
+
+.dropdown-menu {
+    max-height: 50vh !important;
+}
+
+.hand {
+    cursor: grab;
+}

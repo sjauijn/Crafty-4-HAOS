@@ -1,0 +1,75 @@
+{% extends ../base.html %}
+
+{% block meta %}
+{% end %}
+
+{% block title %}Crafty Controller Starting{% end %}
+
+{% block content %}
+<div class="content-wrapper">
+    <div class="card-header justify-content-between align-items-center border-0">
+        <div id="image-div" class="w-100">
+            <img class="img-center clearfix" id="logo-animate" src="/static/assets/images/crafty-logo-square-1024.png"
+                alt="Crafty Logo, Crafty is loading" width="20%">
+        </div>
+        <br>
+        </br>
+        <div id="text-div" class="w-100 text-center">
+            <h2 id="status" class="d-block" data-init="{{ translate('startup', 'serverInit', data['lang']) }}"
+                data-server="{{ translate('startup', 'server', data['lang']) }}"
+                data-internet="{{ translate('startup', 'internet', data['lang']) }}"
+                data-tasks="{{ translate('startup', 'tasks', data['lang']) }}"
+                data-internals="{{ translate('startup', 'internals', data['lang']) }}"
+                data-almost="{{ translate('startup', 'almost', data['lang']) }}"
+                data-cache="{{ translate('startup', 'cache', data['lang'])}}">
+                {{ translate('startup', 'starting', data['lang']) }}
+            </h2>
+        </div>
+
+    </div>
+</div>
+<style>
+    .img-center {
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+    }
+</style>
+<script>
+    function rotateImage(degree) {
+        $('#logo-animate').animate({ transform: degree }, {
+            step: function (now, fx) {
+                $(this).css({
+                    '-webkit-transform': 'rotate(' + now + 'deg)',
+                    '-moz-transform': 'rotate(' + now + 'deg)',
+                    'transform': 'rotate(' + now + 'deg)'
+                });
+            }
+        });
+        setTimeout(function () {
+            rotateImage(360);
+        }, 2000);
+    }
+    $(document).ready(function () {
+        setTimeout(function () {
+            rotateImage(360);
+        }, 2000);
+        if (webSocket) {
+            webSocket.on('update', function (data) {
+                if ("server" in data) {
+                    $("#status").text(`${$("#status").data(data.section)} ${data.server}...`).html();
+                } else {
+                    $("#status").text($("#status").data(data.section)).html();
+                }
+            });
+            webSocket.on('send_start_reload', function () {
+                setTimeout(function () {
+                    location.href = '/panel/dashboard'
+                }, 5000);
+
+            });
+        }
+    });
+
+</script>
+{% end %}

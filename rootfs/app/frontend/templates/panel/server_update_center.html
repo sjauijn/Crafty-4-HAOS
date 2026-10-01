@@ -1,0 +1,308 @@
+{% extends ../base.html %}
+
+{% block meta %}
+{% end %}
+
+{% block title %}Crafty Controller - {{ translate('serverDetails', 'serverDetails', data['lang']) }}{% end %}
+
+{% block content %}
+<div class="content-wrapper">
+
+    <!-- Page Title Header Starts-->
+    <div class="row page-title-header">
+        <div class="col-12">
+            <div class="page-header">
+                <h4 class="page-title">
+                    {{ translate('serverDetails', 'serverDetails', data['lang']) }} - {{
+                    data['server_stats']['server_id']['server_name'] }}
+                    <br />
+                    <small>UUID: {{ data['server_stats']['server_id']['server_id'] }}</small>
+                </h4>
+            </div>
+        </div>
+
+    </div>
+    <!-- Page Title Header Ends-->
+
+    {% include "parts/details_stats.html %}
+
+    <div class="row">
+        <div class="col-sm-12 grid-margin">
+            <div class="card">
+                <div class="card-body  pt-0">
+                    <span class="d-none d-sm-block">
+                        {% include "parts/server_controls_list.html %}
+                    </span>
+                    <span class="d-block d-sm-none">
+                        {% include "parts/m_server_controls_list.html %}
+                    </span>
+                    <div class="row">
+                        <div class="col-md-9 col-sm-12">
+                            {% if data['server_stats']['server_type'] == "minecraft-java" %}
+                            <div id="selectHead" class="form-adapability">
+                                <select id="ba" class="form-control">
+                                    <option value="0">Basic</option>
+                                    {% if data['super_user'] %}
+                                    <option value="1">Advanced</option>
+                                    {% end %}
+                                </select>
+                            </div>
+                            {% end %}
+                            <br>
+                            <div id="basic">
+                                {% if data['server_stats']['server_type'] == "minecraft-java" %}
+                                <div
+                                    class="card-header header-sm d-flex justify-content-between align-items-center form-adapability">
+                                    <span id="update-url" class="text-secondary" style="font-size: .9vw;">{{
+                                        data['server_stats']['server_id']['executable_update_url'] }}</span> 🔒
+                                </div>
+                                <br>
+                                {% include "../panel/parts/big_bucket_wiz.html" %}
+                                {% end %}
+                            </div>
+                            <div id="advanced" class="d-none form-adapability">
+                                {% if data['super_user'] %}
+                                {% if data['server_stats']['server_type'] == "minecraft-java" %}
+                                <div class="form-group">
+                                    <label for="executable_update_url">{{ translate('serverConfig', 'exeUpdateURL',
+                                        data['lang']) }}
+                                        <small class="text-muted ml-1"> - {{ translate('serverConfig',
+                                            'exeUpdateURLDesc',
+                                            data['lang'])
+                                            }}</small> </label>
+                                    <input type="text" class="form-control" name="executable_update_url"
+                                        id="executable_update_url"
+                                        value="{{ data['server_stats']['server_id']['executable_update_url']  }}"
+                                        placeholder="{{ translate('serverConfig', 'exeUpdateURL', data['lang']) }}">
+                                </div>
+                                {% end %}
+                                {% end %}
+                            </div>
+                            {% if data['super_user'] %}
+                            <div class="form-group form-adapability">
+                                <label for="executable">{{ translate('serverConfig', 'serverExecutable',
+                                    data['lang'])
+                                    }}
+                                    <small class="text-muted ml-1"> - {{ translate('serverConfig',
+                                        'serverExecutableDesc',
+                                        data['lang'])
+                                        }}</small> </label>
+                                <input type="text" class="form-control" name="executable" id="executable"
+                                    value="{{ data['server_stats']['server_id']['executable']  }}"
+                                    placeholder="{{ translate('serverConfig', 'serverExecutable', data['lang']) }}"
+                                    required>
+                            </div>
+                            {% end %}
+                        </div>
+                        <div class="col-sm-3 grid-margin">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h4 class="card-title text-center">Update Information
+                                    </h4>
+                                    <blockquote class="blockquote">
+                                        {% if data['server_stats']['server_type'] == "minecraft-java" %}
+                                        <div class="form-group">
+                                            <div class="custom-control custom-switch">
+                                                <input type="checkbox" class="custom-control-input" id="update_watcher"
+                                                    name="update_watcher" {% if data['server_data']['update_watcher'] %}
+                                                    checked="" {% end %} value="1">
+                                                <label class="custom-control-label" for="update_watcher">&nbsp;&nbsp;{{
+                                                    translate('serverUpdate',
+                                                    'monitorUpdate', data['lang']) }}</label>
+                                            </div>
+                                        </div>
+                                        {% end %}
+                                        <p class="mb-0">
+                                            {% if data["server_data"]["update_watcher"] %}
+                                            {% if not data['update'] %}
+                                            {{
+                                            translate('serverUpdate',
+                                            'upToDate', data['lang']) }} ✅
+                                            {% else %}
+                                            {{
+                                            translate('serverUpdate',
+                                            'newVersion', data['lang']) }} ⚠️
+                                            {% end %}
+                                            <br>
+                                            <br>
+                                            Next Check: {{ data['update_next_run']}}
+                                            <br>
+                                            <br>
+                                            {% end %}
+                                            Current Executable: <br> <span id="span_executable"> {{
+                                                data['server_data']['executable'] }} </span>
+                                            <br>
+                                            <br>
+                                        </p>
+                                        <div>
+                                            <button onclick="send_command(serverId, 'update_executable');"
+                                                id="update_executable" class="btn btn-outline-warning">{{
+                                                translate('serverConfig',
+                                                'update', data['lang']) }}</button>
+                                        </div>
+                                        <br>
+                                        <div class="download-progress progress d-none" role="progressbar"
+                                            id="download-progress">
+                                            <div class="progress-bar progress-bar-striped progress-bar-animated"
+                                                id="download-progress-bar" style="width:0%;" aria-valuenow="0"
+                                                aria-valuemin="0" aria-valuemax="100">0%</div>
+                                        </div>
+                                    </blockquote>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-9 grid-margin">
+                            <button id="submit" class="btn btn-outline-success full">Submit</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <link rel="stylesheet" href="/static/assets/css/partial/crafty-update-center.css">
+    {% end %}
+    {% block js %}
+    <script>
+        const serverId = new URLSearchParams(document.location.search).get('id')
+        $("#ba").on("change", function () {
+            if ($("#ba").val() === "0") {
+                $("#advanced").addClass("d-none");
+                $("#basic").removeClass("d-none");
+            } else {
+                $("#basic").addClass("d-none");
+                $("#advanced").removeClass("d-none");
+            }
+        });
+
+        async function send_command(serverId, command) {
+            //<!--  this getCookie function is in base.html-->
+            const token = getCookie("_xsrf");
+            $("#download-progress").removeClass("d-none");
+
+            let res = await fetch(`/api/v2/servers/${serverId}/action/${command}`, {
+                method: 'POST',
+                headers: {
+                    'token': token,
+                },
+            });
+            let responseData = await res.json();
+            if (responseData.status === "ok") {
+                console.log("Command received successfully")
+            } else {
+                bootbox.alert({
+                    title: responseData.error,
+                    message: responseData.error_data
+                });
+            }
+        }
+
+        $("#update_watcher").on("change", async function () {
+            let payload = JSON.stringify({ "update_watcher": $("#update_watcher").prop('checked') })
+            let res = await fetch(`/api/v2/servers/${serverId}/update/config/`, {
+                method: 'PATCH',
+                body: payload,
+                headers: {
+                    'X-XSRFToken': token
+                },
+            });
+            let responseData = await res.json();
+            if (responseData.status === "ok") {
+                console.log("good")
+                location.reload();
+
+            } else {
+
+                bootbox.alert({
+                    title: responseData.error,
+                    message: responseData.error_data
+                });
+            }
+        });
+
+        $("#submit").on("click", async function () {
+            if ($("#ba").val() === "0") {
+                let payload = { "category": $("#server_jar").val(), "type": $("#server_type").val(), "version": $("#server").val() }
+                let formDataJsonString = JSON.stringify(payload);
+                if ($("#server_jar").val() && $("#server_type").val() && $("#server").val()) { //Only send the first payload if it exists
+                    let res = await fetch(`/api/v2/servers/${serverId}/update/config/`, {
+                        method: 'PATCH',
+                        body: formDataJsonString,
+                        headers: {
+                            'X-XSRFToken': token
+                        },
+                    });
+                    let responseData = await res.json()
+                    if (responseData.status === "ok") {
+                        $("#update-url").text(responseData.data["executable_update_url"])
+
+                    } else {
+
+                        bootbox.alert({
+                            title: responseData.error,
+                            message: responseData.error_data
+                        });
+                    }
+                }
+                payload = { "executable": $("#executable").val() };
+                formDataJsonString = JSON.stringify(payload);
+                let res1 = await fetch(`/api/v2/servers/${serverId}/`, {
+                    method: 'PATCH',
+                    body: formDataJsonString,
+                    headers: {
+                        'X-XSRFToken': token
+                    },
+                });
+                let responseData1 = await res1.json()
+                if (responseData1.status === "ok") {
+                    $("#span_executable").text($("#executable").val())
+
+                } else {
+
+                    bootbox.alert({
+                        title: responseData1.error,
+                        message: responseData1.error_data
+                    });
+                }
+            } else {
+                let payload = { "executable_update_url": $("#executable_update_url").val(), "executable": $("#executable").val() }
+                let formDataJsonString = JSON.stringify(payload)
+                let res = await fetch(`/api/v2/servers/${serverId}/`, {
+                    method: 'PATCH',
+                    body: formDataJsonString,
+                    headers: {
+                        'X-XSRFToken': token
+                    },
+                });
+                let responseData = await res.json()
+                if (responseData.status === "ok") {
+                    $("#update-url").text(responseData.data["executable_update_url"])
+
+                } else {
+
+                    bootbox.alert({
+                        title: responseData.error,
+                        message: responseData.error_data
+                    });
+                }
+            }
+        });
+        $(document).ready(function () {
+            webSocket.on('remove_spinner', function (data) {
+                globalThis.location.href = `/panel/server_detail?id=${data.server_id}&subpage=term`
+            });
+        });
+
+        webSocket.on('backup_status', function (backup) {
+            let progress = backup.percent;
+            try {
+                if (progress < 100) {
+                    $("#download-progress").removeClass("d-none");
+                    $("#download-progress-bar").css("width", progress);
+                    $("#download-progress-bar").text(progress);
+                }
+            } catch {
+                console.log("Could not find dom element for update")
+            }
+        });
+    </script>
+    {% end %}

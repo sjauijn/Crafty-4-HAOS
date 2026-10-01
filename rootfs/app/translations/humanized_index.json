@@ -1,0 +1,20 @@
+{
+    "language": {
+        "cs_CS": "Čeština",
+        "de_DE": "Deutsch",
+        "en_EN": "English (US)",
+        "es_ES": "Español",
+        "fr_FR": "Français (France)",
+        "he_IL": "he_IL",
+        "it_IT": "Italiano",
+        "lol_EN": "Lolcatz",
+        "lv_LV": "Latviešu",
+        "nl_BE": "nl_BE",
+        "pl_PL": "Polski",
+        "ru_RU": "Русский",
+        "th_TH": "ไทย",
+        "tr_TR": "Türkçe",
+        "uk_UA": "Українська",
+        "zh_CN": "中文（中国)"
+    }
+}

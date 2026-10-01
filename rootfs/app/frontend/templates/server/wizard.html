@@ -1,0 +1,463 @@
+{% extends ../base.html %}
+
+{% block title %}Crafty Controller - {{ translate('serverWizard', 'newServer', data['lang']) }}{% end %}
+<meta http-equiv="Pragma" content="no-cache">
+{% block content %}
+
+<link rel="stylesheet" href="/static/assets/css/vendors/bootstrap-select-1.13.18.css">
+<div class="content-wrapper" id="creation-wrapper"
+  data-importing="{{translate('serverWizard', 'importing', data['lang'])}}"
+  data-downloading="{{translate('serverWizard', 'downloading', data['lang'])}}"
+  data-bePatient="{{translate('serverWizard', 'bePatient', data['lang'])}}">
+  <ul class="nav nav-pills tab-simple-styled">
+    <li class="nav-item term-nav-item">
+      <a class="nav-link active" href="/server/step1" role="tab" aria-selected="false">
+        <i class="ph-fill ph-file-text"></i>Minecraft-Java</a>
+    </li>
+    <li class="nav-item term-nav-item">
+      <a class="nav-link" href="/server/bedrock_step1" role="tab" aria-selected="false">
+        <i class="ph-fill ph-file-text"></i>Minecraft-Bedrock</a>
+    </li>
+    <li class="nav-item term-nav-item">
+      <a class="nav-link" href="/server/hytale_step1" role="tab" aria-selected="false">
+        <i class="ph-fill ph-file-text"></i>Hytale</a>
+    </li>
+    {% if data.get("experimental") %}
+    <li class="nav-item term-nav-item">
+      <a class="nav-link" href="/server/steam_cmd_step1" role="tab" aria-selected="false">
+        <i class="ph-fill ph-file-text"></i>Steam-CMD&nbsp;<span id="steam-badge"
+          title="{{translate('serverWizard', 'experimentalFeature', data['lang'])}}" class="text-primary"><i
+            class="ph ph-flask"></i></span></a>
+    </li>
+    {% end %}
+  </ul>
+  <div class="d-none" id="overlay" onclick="hide(event)"></div>
+  <div class="row">
+    <div class="col-sm-6 grid-margin stretch-card">
+      <div class="card" id="creation_wizard">
+        <div class="card-body">
+
+          <h4>{{ translate('serverWizard', 'newServer', data['lang']) }}</h4>
+          <br />
+          <p class="card-description">
+
+          <form method="post" id="download_jar">
+            {% if data["server_api"] and data["online"] %}
+            <fieldset>
+              {% else %}
+              <fieldset disabled="disabled">
+                {% end %}
+                {% raw xsrf_form_html() %}
+                <div class="row">
+                  {% include "../panel/parts/big_bucket_wiz.html" %}
+                  <div class="col-sm-12">
+                    <div class="form-group">
+                      <label for="server_name">{{ translate('serverWizard', 'serverName', data['lang']) }}</label>
+                      <input type="text" class="form-control" id="server_name" name="name"
+                        placeholder="{{ translate('serverWizard', 'myNewServer', data['lang']) }}" required>
+                    </div>
+                  </div>
+
+                </div>
+                <br />
+                <h4 class="card-title">{{ translate('serverWizard', 'quickSettings', data['lang']) }} <small
+                    class="text-none"> - {{ translate('serverWizard', 'quickSettingsDescription', data['lang'])
+                    }}</small></h4>
+                <hr>
+                <div class="row">
+
+                  <div class="col-sm-4">
+                    <div class="form-group">
+                      <label for="min_memory1">{{ translate('serverWizard', 'minMem', data['lang']) }} <small> - {{
+                          translate('serverWizard', 'sizeInGB', data['lang']) }}</small></label>
+                      <input type="number" class="form-control" id="min_memory1" name="mem_min" value="1" step="0.5"
+                        min="0.5" required>
+                    </div>
+                  </div>
+
+                  <div class="col-sm-4">
+                    <div class="form-group">
+                      <label for="max_memory1">{{ translate('serverWizard', 'maxMem', data['lang']) }} <small> - {{
+                          translate('serverWizard', 'sizeInGB', data['lang']) }}</small></label>
+                      <input type="number" class="form-control" id="max_memory1" name="mem_max" value="2" step="0.5"
+                        min="0.5" required>
+                    </div>
+                  </div>
+
+                  <div class="col-sm-4">
+                    <div class="form-group">
+                      <label for="port1">{{ translate('serverWizard', 'serverPort', data['lang']) }} <small> - {{
+                          translate('serverWizard', 'defaultPort', data['lang']) }}</small></label>
+                      <input type="number" class="form-control" id="port1" name="port" value="25565" step="1" min="1"
+                        max="65535 " required>
+                    </div>
+                  </div>
+                  <div class="col-sm-12">
+                    {% include "../panel/parts/role_select.html" %}
+                    <br />
+                    <br />
+                  </div>
+                </div>
+                <button type="submit" class="btn btn-primary mr-2">{{ translate('serverWizard', 'buildServer',
+                  data['lang']) }}</button>
+                <button type="reset" class="btn btn-danger mr-2">{{ translate('serverWizard', 'resetForm', data['lang'])
+                  }}</button>
+              </fieldset>
+        </div>
+        </fieldset>
+        {% if not data["server_api"] and data["online"] %}
+        <div class="api-alert">
+          <p><i class="ph-fill ph-warning"></i>&nbsp;{{
+            translate('error', 'bigBucket1', data['lang']) }}<a
+              href="https://status.craftycontrol.com/status/craftycontrol" target="_blank" rel="noopener">&nbsp;{{
+              translate('error',
+              'craftyStatus', data['lang']) }}</a>
+            &nbsp;{{ translate('error', 'bigBucket2', data['lang']) }}</br></br><small>{{ translate('error', 'selfHost',
+              data['lang'])}}</small></p>
+        </div>
+        {% end %}
+        {% if not data["online"] %}
+        <div class="api-alert">
+          <p><i class="ph-fill ph-warning"></i>&nbsp;{{ translate('error', 'noInternet', data['lang']) }}</p>
+        </div>
+        {% end %}
+      </div>
+      </form>
+    </div>
+    <!-- Upload Zip File For Server Import -->
+    <div class="col-md-6 grid-margin stretch-card">
+      <div class="card">
+        <div class="card-body">
+
+          <h4>{{ translate('serverWizard', 'uploadZip', data['lang']) }}</h4>
+          <br />
+          <p class="card-description">
+
+          <form name="zip" id="import-upload" class="server-wizard">
+            {% raw xsrf_form_html() %}
+            <input type="hidden" value="import_zip" name="create_type">
+
+            <div class="form-group">
+              <label for="server_name">{{ translate('serverWizard', 'serverName', data['lang']) }}</label>
+              <input type="text" class="form-control" id="server_name" name="name" value=""
+                placeholder="{{ translate('serverWizard', 'myNewServer', data['lang']) }}" required>
+            </div>
+            <div class="form-group">
+              <label for="server">{{ translate('serverWizard', 'serverUpload', data['lang']) }}</label>
+              <div id="upload_input" class="input-group">
+                <div class="custom-file">
+                  <input type="file" multiple="false" class="custom-file-input" id="file" name="file" required>
+                  <label id="fileLabel" class="custom-file-label" for="file">{{ translate('serverWizard',
+                    'labelZipFile', data['lang']) }}</label>
+                </div>
+                <div class="input-group-append">
+                  <button type="button" class="btn btn-info upload-button" id="upload-button"
+                    onclick="uploadFile('import')" disabled>{{ translate('serverWizard',
+                    'uploadButton', data['lang']) }}</button>
+                </div>
+              </div>
+            </div>
+
+            <div id="lower_half" class="d-none"
+              data-loading='{{translate("serverFiles", "loadingRecords", data["lang"])}}'>
+              <div class="form-group">
+                <label for="server">{{ translate('serverWizard', 'selectRoot', data['lang']) }} <small>{{
+                    translate('serverWizard', 'explainRoot', data['lang']) }}</small></label>
+                <br>
+                <button class="btn btn-primary mr-2" id="root_upload_button" type="button">{{
+                  translate('serverWizard', 'clickRoot', data['lang']) }}</button>
+              </div>
+
+              <div class="form-group">
+                <label for="server_jar">{{ translate('serverWizard', 'serverJar', data['lang']) }}</label>
+                <input type="text" class="form-control" id="server_jar" name="server_jar" value=""
+                  placeholder="paper.jar" required>
+              </div>
+
+              <h4 class="card-title">{{ translate('serverWizard', 'quickSettings', data['lang']) }} <small
+                  class="text-none"> - {{ translate('serverWizard', 'quickSettingsDescription',
+                  data['lang']) }}</small></h4>
+              <hr>
+
+              <div class="form-group">
+                <label for="min_memory3">{{ translate('serverWizard', 'minMem', data['lang']) }} <small> - {{
+                    translate('serverWizard', 'sizeInGB', data['lang']) }}</small></label>
+                <input type="number" class="form-control" id="min_memory3" name="mem_min" value="1" step="0.5" min="0.5"
+                  required>
+              </div>
+
+              <div class="form-group">
+                <label for="max_memory3">{{ translate('serverWizard', 'maxMem', data['lang']) }} <small> - {{
+                    translate('serverWizard', 'sizeInGB', data['lang']) }}</small></label>
+                <input type="number" class="form-control" id="max_memory3" name="mem_max" value="2" step="0.5" min="0.5"
+                  required>
+              </div>
+
+              <div class="form-group">
+                <label for="port3">{{ translate('serverWizard', 'serverPort', data['lang']) }} <small> - {{
+                    translate('serverWizard', 'defaultPort', data['lang']) }}</small></label>
+                <input type="number" class="form-control" id="port3" name="port" value="25565" step="1" min="1"
+                  max="65535" required>
+              </div>
+
+              <div class="form-group">
+                <label for="Role-3"> {{ translate('serverWizard', 'addRole', data['lang'])
+                  }}
+                  <small class="text-none"> - {{ translate('serverWizard', 'autoCreate',
+                    data['lang']) }}</small></label>
+                {% include "../panel/parts/role_select.html" %}
+              </div>
+              <div class="modal fade" id="dir_select" tabindex="-1" role="dialog" aria-labelledby="dir_select"
+                aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h5 class="modal-title" id="exampleModalLongTitle">{{ translate('serverWizard',
+                        'selectZipDir', data['lang']) }}</h5>
+                      <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                      </button>
+                    </div>
+                    <div class="modal-body">
+                      <div class="tree-ctx-item overflow-scroll mh-75" id="main-tree-div" data-path="">
+                        <input type="radio" class="root-input" id="main-tree-input-upload" name="root_path" value=""
+                          checked>
+                        <span id="main-tree" class="files-tree-title tree-caret-down root-dir" data-path="">
+                          <i class="ph-fill ph-folder"></i>
+                          <i class="ph-fill ph-folder-open"></i>
+                          {{ translate('serverFiles', 'files', data['lang']) }}
+                        </span>
+                        </input>
+                      </div>
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-secondary" data-dismiss="modal">{{
+                        translate('serverWizard', 'close', data['lang']) }}</button>
+                      <button type="button" id="modal-okay" data-dismiss="modal" class="btn btn-primary">{{
+                        translate('serverWizard', 'save', data['lang']) }}</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <button id="upload_submit" type="submit" title="You must select server root dir first" disabled
+              class="btn btn-primary mr-2">{{ translate('serverWizard', 'importServerButton', data['lang'])
+              }}</button>
+            <button type="button" class="btn btn-danger mr-2 tree-reset">{{ translate('serverWizard', 'resetForm',
+              data['lang'])
+              }}</button>
+        </div>
+        </form>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+<link rel="stylesheet" href="/static/assets/css/partial/crafty-wizard.css">
+
+{% end %}
+
+{% block js %}
+<script src="/static/assets/js/shared/upload.js"></script>
+<script type="text/javascript" src="/static/assets/js/shared/root-dir.js"></script>
+
+<script>
+  $("#steam_link").mouseenter(function () {
+    $('[data-toggle="popover"]').popover();
+    $('.missing').popover("show");
+  })
+  $("#steam_link").mouseleave(function () {
+    $('.missing').popover("hide");
+  });
+  function replacer(key, value) {
+    if (key === "roles" || key == "archive_internal_path") {
+      return value
+    }
+    if (key != "ignored_exits") {
+      if (typeof value == "boolean" || key === "host" || key === "version") {
+        return value
+      } else {
+        return (isNaN(value) ? value : +value);
+      }
+    } else {
+      return value;
+    }
+  }
+  function calcRoles() {
+    var combinedValues = [];
+    $('.roles_select').each(function () {
+      var selectedValues = $(this).val();
+      console.log(selectedValues)
+      if (selectedValues) {
+        combinedValues = combinedValues.concat(selectedValues);
+      }
+    });
+    return combinedValues;
+  }
+  async function send_server(data) {
+    let token = getCookie("_xsrf")
+    console.log(data)
+    let res = await fetch(`/api/v2/servers/`, {
+      method: 'POST',
+      headers: {
+        'X-XSRFToken': token
+      },
+      body: data,
+    });
+    let responseData = await res.json();
+    if (responseData.status === "ok") {
+      window.location.href = '/panel/dashboard';
+    } else {
+      var classList = $('.waitMsg').first().attr('class').split(/\s+/);
+
+      // Loop through classes and remove all elements with any of them
+      classList.forEach(function (cls) {
+        $('.' + cls).remove();
+      });
+      bootbox.alert({
+        title: responseData.error,
+        message: responseData.error_data
+      });
+    }
+  }
+  $(document).ready(function () {
+
+    $("#download_jar").on("submit", async function (e) {
+      wait_msg();
+      e.preventDefault();
+      let jarForm = document.getElementById("download_jar");
+
+      let formData = new FormData(jarForm);
+      //Create an object from the form data entries
+      let formDataObject = Object.fromEntries(formData.entries());
+      console.log(formDataObject);
+      let send_data = {
+        "name": formDataObject.name,
+        "roles": calcRoles(),
+        "monitoring_type": "minecraft_java",
+        "minecraft_java_monitoring_data": {
+          "host": "127.0.0.1",
+          "port": formDataObject.port
+        },
+        "create_type": "minecraft_java",
+        "minecraft_java_create_data": {
+          "create_type": "download_jar",
+          "download_jar_create_data": {
+            "category": formDataObject.version.split("|")[0],
+            "type": formDataObject.version.split("|")[1],
+            "version": formDataObject.version.split("|")[2],
+            "mem_min": formDataObject.mem_min,
+            "mem_max": formDataObject.mem_max,
+            "server_properties_port": formDataObject.port
+          }
+        }
+      }
+      console.log("SEND DATA" + send_data);
+      // Format the plain form data as JSON
+      let formDataJsonString = JSON.stringify(send_data, replacer);
+
+
+      console.log(formDataJsonString);
+      send_server(formDataJsonString);
+    });
+
+    $("#import-upload").on("submit", async function (e) {
+      wait_msg(true);
+      e.preventDefault();
+      let jarForm = document.getElementById("import-upload");
+
+      let formData = new FormData(jarForm);
+      //Create an object from the form data entries
+      let formDataObject = Object.fromEntries(formData.entries());
+      console.log(formDataObject);
+      var checkedRadio = $('.root-input:checked');
+      let zip_root_path = ""
+      if (checkedRadio.length > 0) {
+        // Get the value of the checked radio button
+        var checkedValue = checkedRadio.val();
+        zip_root_path = checkedValue; // Return the checked value if needed
+      }
+      let send_data = {
+        "name": formDataObject.name,
+        "roles": calcRoles(),
+        "monitoring_type": "minecraft_java",
+        "minecraft_java_monitoring_data": {
+          "host": "127.0.0.1",
+          "port": formDataObject.port
+        },
+        "create_type": "minecraft_java",
+        "minecraft_java_create_data": {
+          "create_type": "import_server",
+          "import_server_create_data": {
+            "archive_name": $("#file-uploaded").val(),
+            "archive_internal_path": zip_root_path,
+            "jarfile": formDataObject.server_jar,
+            "mem_min": formDataObject.mem_min,
+            "mem_max": formDataObject.mem_max,
+            "server_properties_port": formDataObject.port
+          }
+        }
+      }
+      console.log(send_data);
+      // Format the plain form data as JSON
+      let formDataJsonString = JSON.stringify(send_data, replacer);
+      send_server(formDataJsonString);
+    });
+
+  });
+</script>
+
+<script>
+  $(".tree-reset").on("click", function () {
+    location.href = "/server/step1";
+  });
+
+  $(document).ready(function () {
+    console.log('ready');
+    let forms = $('form.server-wizard');
+    forms.each(function (i, formEl) {
+      let form = $(formEl);
+      let min = form.find('[name=min_memory]');
+      let max = form.find('[name=max_memory]');
+      console.log(form, min, max)
+      min.change(function () {
+        check_sizes(max, min, 'min');
+      });
+      max.change(function () {
+        check_sizes(max, min, 'max');
+      });
+    });
+  });
+
+  function wait_msg(importing) {
+    bootbox.alert({
+      title: importing ? `${$("#creation-wrapper").attr("data-importing")}` : `${$("#creation-wrapper").attr("data-downloading")}`,
+      message: `<i class="ph-fill ph-cloud-arrow-down"></i> ${$("#creation-wrapper").attr("data-bePatient")}`,
+      className: "waitMsg",
+    });
+  }
+
+
+  function check_sizes(a, b, changed) {
+    let max_mem = parseFloat(a.val());
+    let min_mem = parseFloat(b.val());
+    if (max_mem < min_mem && changed === 'min') {
+      a.val(min_mem)
+    }
+    if (max_mem < min_mem && changed === 'max') {
+      b.val(max_mem)
+    }
+  }
+
+  $('#file').change(function () {
+    console.log("File changed");
+    if ($('#file').val()) {
+      $('#upload-button').prop("disabled", false);
+      document.getElementById("fileLabel").innerHTML = $('#file').val().split('\\').pop().split('/').pop();
+      console.log("File changed good");
+    }
+  });
+
+</script>
+<script src="/static/assets/js/shared/bootstrap-select-1.13.18.js"></script>
+{% end %}

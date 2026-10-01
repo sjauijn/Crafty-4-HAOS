@@ -1,0 +1,60 @@
+{% extends ../base.html %}
+
+{% block meta %}
+{% end %}
+
+{% block title %}Crafty Controller - Wiki{% end %}
+
+{% block content %}
+
+<!-- Desktop View -->
+<div class="d-none d-sm-block content-wrapper">
+    <!-- Page Title Header Starts-->
+    <div class="row page-title-header">
+        <div class="col-12">
+            <div class="page-header">
+                <h4 class="page-title">{{ translate('sidebar', 'documentation', data['lang']) }}</h4>
+            </div>
+        </div>
+    </div>
+    <div class="row iframe-row">
+        <div class="col-12 iframe-col">
+            <div class="iframe-wrapper">
+                <iframe title="crafty's docs" src="https://docs.craftycontrol.com/" class="iframe-item"></iframe>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Mobile View -->
+<div class="d-sm-none content-wrapper mobile-content-wrapper">
+    <iframe title="crafty's docs" src="https://docs.craftycontrol.com/" class="iframe-item"></iframe>
+</div>
+<!-- content-wrapper ends -->
+<style>
+    .iframe-item {
+        height: 100%;
+        width: 100%;
+        border: none;
+    }
+
+    .iframe-wrapper {
+        height: 100%;
+    }
+
+    .iframe-col {
+        height: 100%;
+    }
+
+    .iframe-row {
+        height: 100%;
+        max-height: calc(100% - 63px);
+        padding-bottom: 1rem;
+    }
+
+    .mobile-content-wrapper {
+        padding: 0;
+    }
+</style>
+
+
+{% end %}

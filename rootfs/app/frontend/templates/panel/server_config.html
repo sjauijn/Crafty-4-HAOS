@@ -1,0 +1,593 @@
+{% extends ../base.html %}
+
+{% block meta %}
+{% end %}
+
+{% block title %}Crafty Controller - {{ translate('serverDetails', 'serverDetails', data['lang']) }}{% end %}
+
+{% block content %}
+<link rel="stylesheet" href="/static/assets/css/partial/crafty-server-config.css">
+<div class="content-wrapper">
+
+  <!-- Page Title Header Starts-->
+  <div class="row page-title-header">
+    <div class="col-12">
+      <div class="page-header">
+        <h4 class="page-title">
+          {{ translate('serverDetails', 'serverDetails', data['lang']) }} - {{
+          data['server_stats']['server_id']['server_name'] }}
+          <br />
+          <small>UUID: {{ data['server_stats']['server_id']['server_id'] }}</small>
+        </h4>
+      </div>
+    </div>
+
+  </div>
+  <!-- Page Title Header Ends-->
+
+  {% include "parts/details_stats.html" %}
+
+  <div class="row">
+
+    <div class="col-sm-12 grid-margin">
+      <div class="card">
+        <div class="card-body  pt-0">
+          {% if not data['failed'] %}
+          <span class="d-none d-sm-block">
+            {% include "parts/server_controls_list.html %}
+          </span>
+          <span class="d-block d-sm-none">
+            {% include "parts/m_server_controls_list.html %}
+          </span>
+          {% end %}
+
+          <div class="row">
+            <div class="col-md-12 col-sm-12">
+              <form class="forms-sample" method="post" id="config_form">
+
+                <div class="form-group">
+                  <label for="server_name">{{ translate('serverConfig', 'serverName', data['lang']) }} <small
+                      class="text-muted ml-1"> - {{ translate('serverConfig', 'serverNameDesc', data['lang']) }}</small>
+                  </label>
+                  <input type="text" class="form-control" name="server_name" id="server_name"
+                    value="{{ data['server_stats']['server_id']['server_name']  }}"
+                    placeholder="{{ translate('serverConfig', 'serverName', data['lang']) }}" required>
+                </div>
+
+                {% if data['super_user'] %}
+                <div class="form-group">
+                  <label for="server_path">{{ translate('serverConfig', 'serverPath', data['lang']) }} <small
+                      class="text-muted ml-1"> - {{ translate('serverConfig', 'serverPathDesc', data['lang']) }}</small>
+                  </label>
+                  <div class="card-header header-sm d-flex justify-content-between align-items-center">
+                    <span class="text-secondary" style="font-size: .9vw;">{{ data['server_stats']['server_id']['path']
+                      }}</span>
+                    🔒
+                  </div>
+
+                </div>
+                {% if data['server_stats']['server_type'] != "minecraft-bedrock" %}
+                <div class="form-group">
+                  <label for="log_path">{{ translate('serverConfig', 'serverLogLocation', data['lang']) }} <small
+                      class="text-muted ml-1"> - {{ translate('serverConfig', 'serverLogLocationDesc', data['lang'])
+                      }}</small> </label>
+                  <input type="text" class="form-control" name="log_path" id="log_path"
+                    value="{{ data['server_stats']['server_id']['log_path']  }}"
+                    placeholder="{{ translate('serverConfig', 'serverLogLocation', data['lang']) }}">
+                </div>
+                {% end %}
+                {% end %}
+                {% if data['server_stats']['server_type'] == "minecraft-java" or data['server_stats']['server_type'] == "hytale" %}
+                <div class="form-group">
+                  <label for="java_selection">{{ translate('serverConfig', 'javaVersion', data['lang']) }}
+                    <small class="text-muted ml-1">{{ translate('serverConfig', 'javaVersionDesc', data['lang'])
+                      }}</small>
+                  </label>
+                  <select class="form-select form-control form-control-lg select-css" id="java_selection"
+                    name="java_selection" form="config_form">
+                    <option value="none">{{ translate('serverConfig', 'javaNoChange', data['lang'])}}</option>
+                    {% for path in data['java_versions'] %}
+                    <option value="{{path}}">{{path}}</option>
+                    {% end %}
+                  </select>
+                </div>
+                {% end %}
+
+                {% if data['super_user'] %}
+                <div class="form-group">
+                  <label for="execution_command">{{ translate('serverConfig', 'serverExecutionCommand', data['lang']) }}
+                    <small class="text-muted ml-1"> - {{ translate('serverConfig', 'serverExecutionCommandDesc',
+                      data['lang']) }}</small> </label>
+                  <input type="text" class="form-control" name="execution_command" id="execution_command"
+                    value="{{ data['server_stats']['server_id']['execution_command']  }}"
+                    placeholder="{{ translate('serverConfig', 'serverExecutionCommand', data['lang']) }}" required>
+                </div>
+                {% else %}
+                <label for="execution_command">{{ translate('serverConfig', 'serverExecutionCommand', data['lang']) }}
+                  <div class="card-header header-sm d-flex justify-content-between align-items-center">
+                    <span class="text-secondary" style="font-size: .9vw;">{{
+                      data['server_stats']['server_id']['execution_command'] }}</span> 🔒
+                  </div>
+                  <br>
+                  {% end %}
+                  <div class="form-group">
+                    <label for="stop_command">{{ translate('serverConfig', 'serverStopCommand', data['lang']) }} <small
+                        class="text-muted ml-1"> - {{ translate('serverConfig', 'serverStopCommandDesc', data['lang'])
+                        }}</small> </label>
+                    <input type="text" class="form-control" name="stop_command" id="stop_command"
+                      value="{{ data['server_stats']['server_id']['stop_command']  }}"
+                      placeholder="{{ translate('serverConfig', 'serverStopCommand', data['lang']) }}" required>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="auto_start_delay">{{ translate('serverConfig', 'serverAutostartDelay', data['lang']) }}
+                      <small class="text-muted ml-1"> - {{ translate('serverConfig', 'serverAutostartDelayDesc',
+                        data['lang']) }}</small> </label>
+                    <input type="number" class="form-control" name="auto_start_delay" id="auto_start_delay"
+                      value="{{ data['server_stats']['server_id']['auto_start_delay']  }}" step="1" max="999" min="10"
+                      required>
+                  </div>
+
+                  {% if data['super_user'] %}
+                  <div class="form-group">
+                    <label for="server_ip">{{ translate('serverConfig', 'serverIP', data['lang']) }} <small
+                        class="text-muted ml-1">- {{ translate('serverConfig', 'serverIPDesc', data['lang']) }}</small>
+                    </label>
+                    <input type="text" class="form-control" name="server_ip" id="server_ip"
+                      value="{{ data['server_stats']['server_id']['server_ip']  }}" required>
+                  </div>
+                  <div class="form-group">
+                    <label for="server_port">{{ translate('serverConfig', 'serverPort', data['lang']) }} <small
+                        class="text-muted ml-1"> - {{ translate('serverConfig', 'serverPortDesc', data['lang']) }}
+                      </small> </label>
+                    <input type="number" class="form-control" name="server_port" id="server_port" value="{{ data['server_stats']['server_id']['server_port']  }}" step="1" max="65566" min="1" required>
+                    <span data-html="true" class="port-hint text-center" title="<i class='ph-fill ph-warning'></i> " , data-content="{{
+                        translate('serverConfig', 'statsHint1' , data['lang'])}} <br> <br> <strong>{{ translate('serverConfig', 'statsHint2', data['lang'])}}</strong>" , data-placement="right"></span>
+                  </div>
+                  {% end %}
+
+                  <div class="form-group">
+                    <label for="shutdown_timeout">{{ translate('serverConfig', 'shutdownTimeout', data['lang']) }}
+                      <small class="text-muted ml-1"> - {{ translate('serverConfig', 'timeoutExplain1', data['lang'])
+                        }}&nbsp;
+                        {{ data['server_stats']['server_id']['stop_command'] }}&nbsp;{{ translate('serverConfig',
+                        'timeoutExplain2', data['lang']) }}
+                      </small> </label>
+                    <input type="number" class="form-control" name="shutdown_timeout" id="shutdown_timeout"
+                      value="{{ data['server_stats']['server_id']['shutdown_timeout']  }}" step="2" max="300" min="60"
+                      required>
+                  </div>
+                  <div class="form-group">
+                    <label for="ignored_exits">{{ translate('serverConfig', 'ignoredExits', data['lang']) }}
+                      <small class="text-muted ml-1"> - {{ translate('serverConfig', 'ignoredExitsExplain',
+                        data['lang'])
+                        }}
+                      </small> </label>
+                    <input type="text" class="form-control" name="ignored_exits" id="ignored_exits"
+                      value="{{ data['server_stats']['server_id']['ignored_exits']  }}">
+                  </div>
+
+                  <div class="form-group">
+                    <label for="logs_delete_after">{{ translate('serverConfig', 'removeOldLogsAfter', data['lang']) }}
+                      <small class="text-muted ml-1"> - {{ translate('serverConfig', 'removeOldLogsAfterDesc',
+                        data['lang']) }}</small> </label>
+                    <input type="number" class="form-control" name="logs_delete_after" id="logs_delete_after"
+                      value="{{ data['server_stats']['server_id']['logs_delete_after']  }}" step="1" max="365" min="0"
+                      required>
+                  </div>
+
+                  <div class="form-group">
+                    <div class="custom-control custom-switch">
+                      {% if data['server_stats']['server_id']['auto_start'] %}
+                      <input type="checkbox" class="custom-control-input" id="auto_start" name="auto_start" checked=""
+                        value="1">
+                      <label class="custom-control-label" for="auto_start">&nbsp;&nbsp;{{ translate('serverConfig',
+                        'serverAutoStart', data['lang']) }}</label>
+                      {% else %}
+                      <input type="checkbox" class="custom-control-input" id="auto_start" name="auto_start" value="1">
+                      <label class="custom-control-label" for="auto_start">&nbsp;&nbsp;{{ translate('serverConfig',
+                        'serverAutoStart', data['lang']) }}</label>
+                      {% end %}
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <div class="custom-control custom-switch">
+                      {% if data['server_stats']['server_id']['crash_detection'] %}
+                      <input type="checkbox" class="custom-control-input" id="crash_detection" name="crash_detection"
+                        checked="" value="1">
+                      <label class="custom-control-label" for="crash_detection">&nbsp;&nbsp;{{ translate('serverConfig',
+                        'serverCrashDetection', data['lang']) }}</label>
+                      {% else %}
+                      <input type="checkbox" class="custom-control-input" id="crash_detection" name="crash_detection"
+                        value="1">
+                      <label class="custom-control-label" for="crash_detection">&nbsp;&nbsp;{{ translate('serverConfig',
+                        'serverCrashDetection', data['lang']) }}</label>
+                      {% end %}
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <div class="custom-control custom-switch">
+                      {% if data['server_stats']['server_id']['count_players'] %}
+                      <input type="checkbox" class="custom-control-input" id="count_players" name="count_players"
+                        checked="" value="1">
+                      <label class="custom-control-label" for="count_players">&nbsp;&nbsp;{{ translate('serverConfig',
+                        'countPlayers', data['lang']) }}</label>
+                      {% else %}
+                      <input type="checkbox" class="custom-control-input" id="count_players" name="count_players"
+                        value="1">
+                      <label class="custom-control-label" for="count_players">&nbsp;&nbsp;{{ translate('serverConfig',
+                        'countPlayers', data['lang']) }}</label>
+                      {% end %}
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <div class="custom-control custom-switch">
+                      {% if data['super_user'] %}
+                      {% if data['server_stats']['server_id']['show_status'] %}
+                      <input type="checkbox" class="custom-control-input" id="show_status" name="show_status" checked=""
+                        value="1">
+                      <label class="custom-control-label" for="show_status">&nbsp;&nbsp;{{ translate('serverConfig',
+                        'showStatus', data['lang']) }}</label>
+                      {% else %}
+                      <input type="checkbox" class="custom-control-input" id="show_status" name="show_status" value="1">
+                      <label class="custom-control-label" for="show_status">&nbsp;&nbsp;{{ translate('serverConfig',
+                        'showStatus', data['lang']) }}</label>
+                      {% end %}
+                      {% end %}
+                    </div>
+                  </div>
+                  <div class="text-center">
+                    <button type="submit" class="btn btn-success mr-2"><i class="ph ph-floppy-disk"></i> {{
+                      translate('serverConfig', 'save', data['lang']) }}</button>
+                    <button type="reset" class="btn btn-light"><i class="ph ph-clock-counter-clockwise"></i> {{ translate('serverConfig',
+                      'cancel', data['lang']) }}</button>&nbsp;
+                    {% if data['server_stats']['running'] %}
+                    <a class="btn btn-sm btn-danger disabled">{{ translate('serverConfig', 'deleteServer', data['lang'])
+                      }}</a><br />
+                    <small>{{ translate('serverConfig', 'stopBeforeDeleting', data['lang']) }}</small>
+                    {% else %}
+                    {% if not data['failed'] %}
+                    <button onclick="deleteConfirm()" form="" class="btn btn-sm btn-danger">{{ translate('serverConfig',
+                      'deleteServer', data['lang']) }}</button>
+                    {% else %}
+                    <button onclick="deleteUnloadedConfirm()" form="" class="btn btn-sm btn-danger">{{
+                      translate('serverConfig',
+                      'deleteServer', data['lang']) }}</button>
+                    {% end %}
+                    {% end %}
+                  </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .custom-control-input:checked~.custom-control-label::before {
+    color: black !important;
+    background-color: blueviolet !important;
+    border-color: var(--outline) !important;
+  }
+
+  .custom-control-label::before {
+    background-color: white !important;
+    top: calc(-0.2rem);
+  }
+
+  .custom-switch .custom-control-label::after {
+    top: calc(-0.125rem + 1px);
+  }
+</style>
+<!-- content-wrapper ends -->
+
+{% end %}
+
+{% block js %}
+<script>
+  $(function () {
+    $('.form-check-input').bootstrapToggle({
+      on: '',
+      off: ''
+    });
+  })
+  const serverId = new URLSearchParams(document.location.search).get('id')
+
+
+  //used to get cookies from browser - this is part of tornados xsrf protection - it's for extra security
+  function getCookie(name) {
+    var r = document.cookie.match("\\b" + name + "=([^;]*)\\b");
+    return r ? r[1] : undefined;
+  }
+
+  $(document).ready(function () {
+    console.log("ready!");
+
+  });
+
+  function deleteServerE(callback) {
+    const token = getCookie("_xsrf")
+    $.ajax({
+      type: "DELETE",
+      headers: { 'X-XSRFToken': token },
+      url: `/api/v2/servers/${serverId}`,
+      data: {
+      },
+      success: function (data) {
+        console.log("got response:");
+        console.log(data);
+      },
+    });
+  }
+  function deleteServerFilesE(path, callback) {
+    const token = getCookie("_xsrf")
+    $.ajax({
+      type: "DELETE",
+      headers: { 'X-XSRFToken': token },
+      url: `/api/v2/servers/${serverId}?files=true`,
+      data: {
+      },
+      success: function (data) {
+        console.log("got response:");
+        console.log(data);
+      },
+    });
+  }
+
+  function send_command(serverId, command) {
+    //<!--  this getCookie function is in base.html-->
+    const token = getCookie("_xsrf");
+    if (command == "update_executable") {
+      document.getElementById("update-spinner").style.visibility = "visible";
+    }
+
+    $.ajax({
+      type: "POST",
+      headers: { 'X-XSRFToken': token },
+      url: `/api/v2/servers/${serverId}/action/${command}`,
+      success: function (data) {
+        console.log("got response:");
+        console.log(data);
+        if (command != "update_executable") {
+          setTimeout(function () { location.reload(); }, 10000);
+        }
+      }
+    });
+  }
+
+  function deleteServer() {
+    path = "{{data['server_stats']['server_id']['path']}}";
+    name = "{{data['server_stats']['server_id']['server_name']}}";
+    bootbox.dialog({
+      size: "",
+      title: "{% raw translate('serverConfig', 'deleteFilesQuestion', data['lang']) %}",
+      closeButton: false,
+      message: "{% raw translate('serverConfig', 'deleteFilesQuestionMessage', data['lang']) %}",
+      buttons: {
+        files: {
+          label: "{{ translate('serverConfig', 'yesDeleteFiles', data['lang']) }}",
+          className: 'btn-danger',
+          callback: function () {
+            deleteServerFilesE();
+            setTimeout(function () { window.location = '/panel/dashboard'; }, 5000);
+            bootbox.dialog({
+              backdrop: true,
+              title: '{% raw translate("serverConfig", "sendingDelete", data['lang']) %}',
+              message: '<div align="center"><i class="ph ph-spinner-gap ph-spin"></i> &nbsp; {% raw translate("serverConfig", "bePatientDeleteFiles", data['lang']) %} </div>',
+              closeButton: false
+            })
+
+            return;
+          }
+        },
+        noFiles: {
+          label: "{{ translate('serverConfig', 'noDeleteFiles', data['lang']) }}",
+          className: 'btn-outline-danger',
+          callback: function () {
+            deleteServerE()
+            setTimeout(function () { window.location = '/panel/dashboard'; }, 5000);
+            bootbox.dialog({
+              backdrop: true,
+              title: '{% raw translate("serverConfig", "sendingDelete", data['lang']) %}',
+              message: '<div align="center"><i class="ph ph-spinner-gap ph-spin"></i> &nbsp; {% raw translate("serverConfig", "bePatientDelete", data['lang']) %} </div>',
+              closeButton: false
+            })
+            return;
+          }
+        },
+        cancel: {
+          label: "{{ translate('serverConfig', 'cancel', data['lang']) }}",
+          className: 'btn-secondary',
+          callback: function () {
+            return;
+          }
+        }
+      },
+      callback: function (result) {
+
+      }
+    });
+  }
+  function deleteConfirm() {
+    path = "{{data['server_stats']['server_id']['path']}}";
+    name = "{{data['server_stats']['server_id']['server_name']}}";
+    bootbox.confirm({
+      size: "",
+      title: "{% raw translate('serverConfig', 'deleteServerQuestion', data['lang']) %}",
+      closeButton: false,
+      message: "{% raw translate('serverConfig', 'deleteServerQuestionMessage', data['lang']) %}",
+      buttons: {
+        confirm: {
+          label: "{{ translate('serverConfig', 'yesDelete', data['lang']) }}",
+          className: 'btn-danger',
+        },
+        cancel: {
+          label: "{{ translate('serverConfig', 'noDelete', data['lang']) }}",
+          className: 'btn-link',
+        }
+      },
+      callback: function (result) {
+        if (!result) {
+          return;
+          return;
+        }
+        else {
+          deleteServer();
+        }
+
+      }
+    });
+  }
+  function deleteUnloadedConfirm() {
+    path = "{{data['server_stats']['server_id']['path']}}";
+    name = "{{data['server_stats']['server_id']['server_name']}}";
+    bootbox.confirm({
+      size: "",
+      title: "{% raw translate('serverConfig', 'deleteServerQuestion', data['lang']) %}",
+      closeButton: false,
+      message: "{% raw translate('serverConfig', 'deleteServerQuestionMessage', data['lang']) %}",
+      buttons: {
+        confirm: {
+          label: "{{ translate('serverConfig', 'yesDelete', data['lang']) }}",
+          className: 'btn-danger',
+        },
+        cancel: {
+          label: "{{ translate('serverConfig', 'noDelete', data['lang']) }}",
+          className: 'btn-link',
+        }
+      },
+      callback: function (result) {
+        if (!result) {
+          return;
+          return;
+        }
+        else {
+          const token = getCookie("_xsrf")
+          setTimeout(function () { window.location = '/panel/dashboard'; }, 5000);
+          bootbox.dialog({
+            backdrop: true,
+            title: '{% raw translate("serverConfig", "sendingDelete", data['lang']) %}',
+            message: '<div align="center"><i class="ph ph-spinner-gap ph-spin"></i> &nbsp; {% raw translate("serverConfig", "bePatientDelete", data['lang']) %} </div>',
+            closeButton: false
+          })
+          $.ajax({
+            type: "DELETE",
+            headers: { 'X-XSRFToken': token },
+            url: `/api/v2/servers/${serverId}`,
+            data: {
+            },
+            success: function (data) {
+              console.log("got response:");
+              console.log(data);
+            },
+          });
+        }
+
+      }
+    });
+  }
+
+  $("#server_port").focus(function () {
+
+    $('[data-toggle="popover"]').popover();
+    if ($(window).width() < 1000) {
+      $('.port-hint').attr("data-placement", "top")
+    } else {
+      $('.port-hint').attr("data-placement", "right")
+    }
+    $('.port-hint').popover("show");
+  });
+  $("#server_port").focusout(function () {
+    $('.port-hint').popover("hide");
+  });
+
+  async function postFormFieldsAsJson({ url, formData }) {
+    //Create an object from the form data entries
+    let formDataObject = Object.fromEntries(formData.entries());
+    // Format the plain form data as JSON
+    let formDataJsonString = JSON.stringify(formDataObject);
+
+    //Set the fetch options (headers, body)
+    let fetchOptions = {
+      //HTTP method set to POST.
+      method: "PATCH",
+      //Set the headers that specify you're sending a JSON body request and accepting JSON response
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      // POST request body as JSON string.
+      body: formDataJsonString,
+    };
+
+    //Get the response body as JSON.
+    //If the response was not OK, throw an error.
+    let res = await fetch(url, fetchOptions);
+
+    //If the response is not ok throw an error (for debugging)
+    if (!res.ok) {
+      let error = await res.text();
+      throw new Error(error);
+    }
+    //If the response was OK, return the response body.
+    return res.json();
+  }
+  function replacer(key, value) {
+    if (key != "ignored_exits") {
+      if (typeof value == "boolean" || key === "executable_update_url" || value === '') {
+        return value
+      } else {
+        return (isNaN(value) ? value : +value);
+      }
+    } else {
+      return value;
+    }
+  }
+
+  $(document).ready(function () {
+    let token = getCookie("_xsrf")
+    $("#config_form").on("submit", async function (e) {
+      e.preventDefault();
+      const token = getCookie("_xsrf")
+      let configForm = document.getElementById("config_form");
+
+      let formData = new FormData(configForm);
+      //Create an object from the form data entries
+      let formDataObject = Object.fromEntries(formData.entries());
+      //We need to make sure these are sent regardless of whether or not they're checked
+      formDataObject.show_status = $("#show_status").prop('checked');
+      formDataObject.crash_detection = $("#crash_detection").prop('checked');
+      formDataObject.auto_start = $("#auto_start").prop('checked');
+      formDataObject.count_players = $("#count_players").prop('checked');
+      console.log(formDataObject);
+      // Format the plain form data as JSON
+      let formDataJsonString = JSON.stringify(formDataObject, replacer);
+      formDataJsonString["ignored_exits"] = toString(formDataJsonString["ignored_exits"]);
+      console.log(formDataJsonString.ignored_exits)
+
+      console.log(formDataJsonString);
+
+      let res = await fetch(`/api/v2/servers/${serverId}`, {
+        method: 'PATCH',
+        headers: {
+          'X-XSRFToken': token
+        },
+        body: formDataJsonString,
+      });
+      let responseData = await res.json();
+      if (responseData.status === "ok") {
+        location.reload(true);
+      } else {
+
+        bootbox.alert({
+          title: responseData.error,
+          message: responseData.error_data
+        });
+      }
+    });
+  });
+</script>
+
+{% end %}

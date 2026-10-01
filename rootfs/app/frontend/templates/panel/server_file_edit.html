@@ -1,0 +1,63 @@
+{% extends ../blank_base.html %} {% block meta %} {% end %} {% block title %}Crafty
+Controller - <span id="fileTitle"></span>{%
+end %} {% block content %}
+
+<link href="/static/assets/css/partial/crafty-editor.css" rel="stylesheet">
+
+<div class="content-wrapper" id="editor-wrapper"
+    data-changeConflict='{{translate("serverFiles", "changeConflict", data["lang"])}}'
+    data-serverModified='{{translate("serverFiles", "serverModified", data["lang"])}}'
+    data-cancel='{{translate("serverFiles", "cancel", data["lang"])}}'
+    data-overwrite='{{translate("serverFiles", "overwrite", data["lang"])}}'
+    data-repull='{{translate("serverFiles", "repull", data["lang"])}}'
+    data-unsupported="{{translate('serverFiles', 'unsupportedLanguage', data['lang'])}}">
+    <!-- Page Title Header Starts-->
+    <div class="row page-title-header centered">
+        <div id="server-name" class="info-flex">
+            <span class="badge-pill badge-outline-primary"><i class="ph-fill ph-hard-drives"></i>&nbsp;&nbsp;<span
+                    id="server-name-nav"></span></span>
+            <div id="file-name">
+                <div class="gear-menu">
+                    <i class="ph-fill ph-gear context-icon"></i>
+                </div>&nbsp;<span class="badge badge-outline-info"><i
+                        class="ph-bold ph-export"></i>&nbsp;&nbsp;<span id="editingFile"></span></span>
+            </div>
+            <span id="uuid-container"><small>UUID: <span id="server_uuid"></span>
+                </small></span>
+        </div>
+        <div id="file-info" class="info-flex d-sm-flex d-none">
+            <small>{{translate("serverFiles", "size",
+                data["lang"])}}: <span id="file_size_sm"></span> </small>
+            <small>{{translate("serverFiles", "type",
+                data["lang"])}}: <span id="file_type_sm"></span> </small>
+            <small>{{translate("serverFiles",
+                "modified",
+                data["lang"])}}: <span id="file_modified_sm"></span> </small>
+        </div>
+    </div>
+    <div id="warning" class="d-none row centered">
+        <h5><i class="ph-fill ph-warning"></i>&nbsp;{{
+            translate('serverFiles', 'unsupportedLanguage',
+            data['lang'])}}</h5>
+    </div>
+    <!-- Page Title Header Ends-->
+    <div id="editor_container" class="col-sm-12">
+        <div class="editorManager">
+            <div id="editorParent">
+                <div id="editor" onresize="editor.resize()" style="resize: both; width: 100%">
+                </div>
+            </div>
+            <div id="save-container" class="align-items-center text-center">
+                <button id="saveButton" class="btn btn-outline-success"
+                    data-saved='{{translate("serverFilesEditor", "saved" , data["lang"])}}'
+                    data-changes='{{translate("serverFilesEditor", "save" , data["lang"])}}'
+                    data-leave='{{translate("serverFilesEditor", "unsavedChanges" , data["lang"])}}' onclick="save()">
+                    <i class="ph-fill ph-floppy-disk"></i>&nbsp;&nbsp;<span id="saveButtonText"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+    {% include parts/context_menu.html %}
+    <script src="/static/assets/vendors/ace-builds/src-min/ace.js" type="text/javascript" charset="utf-8"></script>
+    <script src="/static/assets/js/shared/editor.js"></script>
+    {% end %}

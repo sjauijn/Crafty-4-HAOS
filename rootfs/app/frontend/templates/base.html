@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="{{ data['lang_page'] }}" class="{{data['user_data'].get('theme', 'default')}}"
+  data-username="{{data['user_data'].get('username', None)}}">
+
+<head>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="crafty-ingress-path" content="__CRAFTY_INGRESS_PATH__">
+  <meta name="crafty-logout-url" content="{{ handler.build_url('/logout') }}">
+  {% if not data.get("mfa", None) and not data.get("password_auth_disabled", False) %}
+  <meta name="mfa_warn" content="{{translate('base', 'getMFA', data['lang'])}}">
+  <meta name="userId" content="{{data['user_data']['user_id']}}">
+  <meta name="auth_translation" content="{{translate('serverWizard', 'authenticate', data['lang'])}}">
+  <meta name="auth_away_translation" content="{{translate('serverWizard', 'authenticateAway', data['lang'])}}">
+  {% end %}
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  {% block meta %}{% end %}
+  <title>{% block title %}{{ _('Default') }}{% end %}</title>
+
+  <!-- plugins:css -->
+  <link rel="stylesheet" href="/static/assets/vendors/mdi/css/materialdesignicons.min.css">
+  <link rel="stylesheet" href="/static/assets/vendors/flag-icon-css/css/flag-icon.min.css">
+  <link rel="stylesheet" href="/static/assets/vendors/ti-icons/css/themify-icons.css">
+  <link rel="stylesheet" href="/static/assets/vendors/typicons/typicons.css">
+  <link rel="stylesheet" href="/static/assets/vendors/fontawesome6/css/all.css">
+  <link rel="stylesheet" href="/static/assets/vendors/phosphoricons/regular/style.css">
+  <link rel="stylesheet" href="/static/assets/vendors/phosphoricons/fill/style.css">
+  <link rel="stylesheet" href="/static/assets/vendors/phosphoricons/bold/style.css">
+  <link rel="stylesheet" href="/static/assets/vendors/phosphoricons/duotone/style.css">
+  <link rel="stylesheet" href="/static/assets/vendors/phosphoricons/light/style.css">
+  <link rel="stylesheet" href="/static/assets/vendors/phosphoricons/thin/style.css">
+  <link rel="stylesheet" type="text/css" href="/static/assets/css/vendors/datatables.min.css" />
+  <link rel="stylesheet" href="/static/assets/vendors/css/vendor.bundle.base.css">
+
+  <link rel="stylesheet" href="/static/assets/css/internal/root.css">
+  <link rel="stylesheet" href="/static/assets/css/internal/anti-lockout.css">
+  <link rel="stylesheet" href="/static/assets/css/themes/default.css">
+  <link rel="stylesheet" href="/static/assets/css/base-style.css">
+  <link rel="stylesheet" href="/static/assets/css/crafty.css">
+  <link rel="stylesheet" href="/static/assets/css/crafty-toggle-btn.css">
+  <link rel="stylesheet" href="/static/assets/css/partial/crafty-notification.css">
+  <link rel="stylesheet" href="/static/assets/css/partial/crafty-warn.css">
+  <link rel="manifest" href="/static/assets/crafty.webmanifest">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="Crafty">
+  <link rel="apple-touch-icon" href="/static/assets/images/Crafty_4-0.png">
+  <link rel="shortcut icon" sizes="192x192" href="/static/assets/images/Crafty_4-0.png">
+
+
+  <!-- endinject -->
+
+  <!-- Plugin css for this page-->
+  <script src="/static/assets/vendors/js/jquery.min.js"></script>
+  <!-- End Plugin css for this page-->
+
+  <!-- Layout styles -->
+  {% for theme in data['themes'] %}
+  <link rel="stylesheet" href="/static/assets/css/themes/{{ theme }}.css">
+  {% end %}
+  <link rel="stylesheet" href="/static/assets/css/base-style.css">
+  <link rel="stylesheet" href="/static/assets/css/crafty.css">
+  <!-- End Layout styles -->
+
+  <link rel="shortcut icon" type="image/svg+xml" href="/static/assets/images/logo_small.svg">
+  <link rel="alternate icon" href="/static/assets/images/favicon.png" />
+
+  <!-- Alpine.js - The modern jQuery alternative -->
+  <script defer src="/static/assets/vendors/js/cdn.min.js"></script>
+  <!-- End Alpine.js -->
+
+  <!-- Bootstrap Toggle -->
+  <link href="/static/assets/vendors/css/bootstrap-toggle.min.css" rel="stylesheet">
+  <script defer src="/static/assets/vendors/js/bootstrap-toggle.min.js"></script>
+  <script src="/static/assets/vendors/js/chart.min.js"></script>
+  <script src="/static/assets/vendors/js/hammer.min.js"></script>
+  <script src="/static/assets/vendors/js/chartjs-plugin-zoom.min.js"></script>
+  <!-- End Bootstrap Toggle -->
+
+</head>
+
+<body>
+  <div class="container-scroller">
+    <!-- partial:partials/_navbar.html -->
+    <nav class="navbar default-layout col-lg-12 col-12 p-0 fixed-top d-flex flex-row">
+      <div class="text-center navbar-brand-wrapper d-flex align-items-top justify-content-center">
+        <a class="navbar-brand brand-logo" href="/panel/dashboard">
+          <img src="/static/assets/images/logo_long.svg" alt="logo" /> </a>
+        <a class="navbar-brand brand-logo-mini" href="/panel/dashboard">
+          <img src="/static/assets/images/logo_small.svg" alt="logo" /> </a>
+      </div>
+      <div class="navbar-menu-wrapper d-flex align-items-center">
+        <button class="navbar-toggler navbar-toggler align-self-center" type="button" data-toggle="minimize">
+          <span class="mdi mdi-chevron-double-left"></span>
+          <span class="mdi mdi-chevron-double-right"></span>
+        </button>
+        &nbsp;&nbsp;&nbsp;
+        <span class="badge-pill badge-outline-primary d-none" id="server-name-nav"></span>
+
+
+        {% include notify.html %}
+
+        <button class="navbar-toggler navbar-toggler-right d-lg-none align-self-center" type="button"
+          data-toggle="offcanvas">
+          <span class="mdi mdi-menu"></span>
+        </button>
+      </div>
+    </nav>
+
+    <div class="container-fluid page-body-wrapper">
+      {% include main_menu.html %}
+
+      <div class="main-panel">
+
+        <div class="warnings">
+          <noscript class="noscript-warning">
+            <div>{% raw translate('base', 'doesNotWorkWithoutJavascript', data['lang']) %}</div>
+          </noscript>
+        </div>
+
+        {% block content %}
+        {% end %}
+
+        {% include footer.html %}
+
+      </div>
+      <!-- main-panel ends -->
+
+    </div>
+    <!-- page-body-wrapper ends -->
+  </div>
+
+  <div class="notifications"></div>
+
+  <script src="/static/assets/vendors/js/vendor.bundle.base.js"></script>
+  <script src="/static/assets/js/shared/off-canvas.js"></script>
+  <script src="/static/assets/js/shared/hoverable-collapse.js"></script>
+  <script src="/static/assets/js/shared/misc.js"></script>
+  <script type="text/javascript" src="/static/assets/vendors/js/datatables.min.js"></script>
+  <script src="/static/assets/vendors/js/bootbox.min.js"></script>
+  <script type="text/javascript" src="/static/assets/js/motd.js"></script>
+
+  <script>
+    const MFA_WARN = document.querySelector('meta[name="mfa_warn"]');
+    const USER_ID = document.querySelector('meta[name="userId"]');
+    if (MFA_WARN) {
+      $(".mfa-warn").removeClass("d-none");
+    }
+    /**
+      * Returns a random number between min (inclusive) and max (exclusive)
+      */
+    function getRandomArbitrary(min, max) {
+      return Math.random() * (max - min) + min;
+    }
+
+    /**
+      * Returns a random integer between min (inclusive) and max (inclusive).
+      * The value is no lower than min (or the next integer greater than min
+      * if min isn't an integer) and no greater than max (or the next integer
+      * lower than max if max isn't an integer).
+      * Using Math.round() will give you a non-uniform distribution!
+      */
+    function getRandomInt(min, max) {
+      min = Math.ceil(min);
+      max = Math.floor(max);
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+
+    $.extend($.fn.dataTable.defaults, {
+      // {{ '\nlanguage:' }} {% raw translate('datatables', 'i18n', data['lang']) %}
+    })
+
+    //used to get cookies from browser - this is part of tornados xsrf protection - it's for extra security
+    function getCookie(name) {
+      var r = document.cookie.match(String.raw`\b` + name + String.raw`=([^;]*)\b`);
+      return r ? r[1] : undefined;
+    }
+
+    // tool tips
+    $(function () {
+      $('[data-toggle="tooltip"]').tooltip()
+    })
+
+    // Notify
+    $(document).ready(function () {
+      $("#notificationDropdown").click(function () {
+        $.get("/ajax/announcements", function (data) {
+          console.log(data);
+          bootbox.alert({
+            title: "Notifications",
+            message: data,
+
+          });
+        });
+      });
+    });
+
+    let usingWebSockets = false;
+    let webSocket = null;
+    let websocketTimeoutId = null;
+    // {% if request.protocol == 'https' %}
+    usingWebSockets = true;
+
+    let listenEvents = [];
+    let wsOpen = false;
+    /**
+      * @type {number | null} reconnectorId An interval ID for the reconnector.
+      */
+    let reconnectorId = null;
+    let failedConnectionCounter = 0; // https://stackoverflow.com/a/37038217/15388424
+
+    const wsPageQueryParams = 'page_query_params=' + encodeURIComponent(location.search)
+    const ingressPathMeta = document.querySelector('meta[name="crafty-ingress-path"]');
+    const metaIngressPath = (ingressPathMeta && ingressPathMeta.content && !ingressPathMeta.content.startsWith('__CRAFTY_INGRESS_PATH__'))
+      ? ingressPathMeta.content
+      : '';
+    const knownRootMatch = location.pathname.match(/^(.*?)\/(panel|login|logout|static|ajax)(\/|$)/);
+    const ingressPath = knownRootMatch ? knownRootMatch[1] : metaIngressPath;
+    const localPathname = ingressPath && location.pathname.startsWith(ingressPath)
+      ? location.pathname.slice(ingressPath.length) || '/'
+      : location.pathname;
+
+    const wsPage = 'page=' + encodeURIComponent(localPathname)
+
+    const sendWssError = () => wsOpen || warn(
+      'WebSockets are required for Crafty to work. This websocket connection has been closed. Are you using a reverse proxy?',
+      link = 'https://docs.craftycontrol.com/pages/getting-started/proxies/',
+      link_msg = "See our documentation for details",
+      className = 'wssError'
+    )
+
+    function startWebSocket() {
+      console.log('%c[Crafty Controller] %cConnecting the WebSocket', 'font-weight: 900; color: #800080;', 'font-weight: 900; color: #eee;');
+      try {
+        var wsProtocol = location.protocol === 'https:' ? 'wss://' : 'ws://';
+        var wsInternal = new WebSocket(wsProtocol + location.host + ingressPath + '/ws?' + wsPage + '&' + wsPageQueryParams);
+        wsInternal.onopen = function () {
+          console.log('opened WebSocket connection:', wsInternal)
+          wsOpen = true;
+          failedConnectionCounter = 0;
+          if (typeof reconnectorId === 'number') {
+            document.querySelectorAll('.wssError').forEach(el => el.remove())
+            clearInterval(reconnectorId);
+            reconnectorId = null;
+          }
+        };
+        wsInternal.onmessage = function (rawMessage) {
+          var message = JSON.parse(rawMessage.data);
+
+          console.log('got message: ', message)
+
+          listenEvents
+            .filter(listenedEvent => listenedEvent.event == message.event)
+            .forEach(listenedEvent => listenedEvent.callback(message.data))
+        };
+        wsInternal.onerror = function (errorEvent) {
+          console.error('WebSocket Error', errorEvent);
+        };
+        wsInternal.onclose = function (closeEvent) {
+          wsOpen = false;
+          console.log('Closed WebSocket', closeEvent);
+
+          if (!document.hidden) {
+            if (typeof reconnectorId !== 'number') {
+              setTimeout(sendWssError, 7000);
+            }
+            console.info("Reconnecting with a timeout of", (getRandomArbitrary(0, 2 ** failedConnectionCounter - 1) + 5) * 1000, "milliseconds");
+            // Discard old websocket and create a new one in 5 seconds
+            wsInternal = null
+            reconnectorId = setTimeout(startWebSocket, (getRandomArbitrary(0, 2 ** failedConnectionCounter - 1) + 5) * 1000)
+
+            failedConnectionCounter++;
+          }
+        };
+
+        webSocket = {
+          on: function (event, callback) {
+            console.log('registered ' + event + ' event');
+            listenEvents.push({ event: event, callback: callback })
+          },
+          emit: function (event, data) {
+            var message = {
+              event: event,
+              data: data
+            }
+
+            wsInternal.send(JSON.stringify(message));
+          },
+          close: function (code, reason) {
+            wsInternal.close(code, reason);
+          },
+          getStatus: function () {
+            return wsInternal.readyState;
+          }
+        }
+      } catch (error) {
+        console.error('Error while making websocket helpers', error);
+        usingWebSockets = false;
+      }
+    }
+
+    startWebSocket();
+    // {% else %}
+    warn('WebSockets are not supported in Crafty if not using the https protocol')
+    // {% end%}
+
+    // Managing Connexions for Multi Tab opened to reduce bandwith usage
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState == "hidden") {
+        websocketTimeoutId = setTimeout(() => {
+          webSocket.close(1000, "Closed due to Inactivity");
+          console.log('%c[Crafty Controller] %cClose Websocket due to Tab not active after 5s', 'font-weight: 900; color: #800080;', 'font-weight: 900; color: #eee;');
+        }, 10000);
+      } else {
+        clearTimeout(websocketTimeoutId)
+        if (webSocket.getStatus() == WebSocket.CLOSED) {
+          startWebSocket();
+        }
+      }
+    });
+
+    if (webSocket) {
+      webSocket.on('send_error', function (start_error) {
+        var x = document.querySelector('.bootbox');
+        if (x) {
+          x.remove()
+        }
+        var x = document.querySelector('.modal-backdrop');
+        if (x) {
+          x.remove()
+        }
+        bootbox.alert({
+          message: start_error.error,
+          callback: function () {
+            location.reload();
+          }
+        })
+      });
+      webSocket.on('download_progress', function (progress) {
+        try {
+          if (progress < 100) {
+            $("#download-progress").removeClass("d-none");
+            $("#download-progress-bar").css("width", progress);
+            $("#download-progress-bar").text(progress);
+          } else {
+            $("#download-progress").addClass("d-none");
+          }
+        } catch {
+          console.log("Could not find dom element for update")
+        }
+      })
+      webSocket.on('hytale_auth', function (data) {
+        $('.bootbox-close-button').click();
+        const HYTALE_AUTH_MSG =
+          document.querySelector('meta[name="auth_translation"]')?.content || "";
+
+        const HYTALE_AUTH_AWAY =
+          document.querySelector('meta[name="auth_away_translation"]')?.content || "";
+
+        document.querySelector('.bootbox')?.remove();
+        document.querySelector('.modal-backdrop')?.remove();
+
+        const container = $("<div>");
+
+        const link = $("<a>")
+          .attr("href", data.link)
+          .attr("target", "_blank")
+          .attr("rel", "noopener noreferrer")
+          .text(HYTALE_AUTH_MSG)
+          .on("click", function (e) {
+            e.preventDefault();
+            window.open(data.link, "_blank", "noopener");
+          });
+
+        const warning = $("<span>").html(
+          `<i class="ph-fill ph-warning"></i>`
+        );
+
+        warning.append($("<p>").text(HYTALE_AUTH_AWAY));
+
+        container.append(link);
+        container.append("<br>")
+        container.append("<br>")
+        container.append(warning);
+
+        bootbox.alert({
+          message: container,
+          callback: function () {
+            globalThis.window.open(data.link)
+            globalThis.location.href = `/panel/server_detail?id=${data.server_id}&subpage=term`
+          }
+        });
+      });
+
+      webSocket.on('support_status_update', function (logs) {
+        if (logs.percent >= 100) {
+          document.getElementById('logs_progress_bar').innerHTML = '100%';
+          document.getElementById('logs_progress_bar').style.width = '100%';
+        } else {
+          document.getElementById('logs_progress_bar').innerHTML = logs.percent + '%';
+          document.getElementById('logs_progress_bar').style.width = logs.percent + '%';
+        }
+      });
+      webSocket.on('send_logs_bootbox', function (server_id) {
+        var x = document.querySelector('.bootbox');
+        if (x) {
+          x.remove()
+        }
+        var x = document.querySelector('.modal-backdrop');
+        if (x) {
+          x.remove()
+        }
+      });
+      webSocket.on('send_eula_bootbox', function (server_id) {
+        var x = document.querySelector('.bootbox');
+        if (x) {
+          x.remove()
+        }
+        var x = document.querySelector('.modal-backdrop');
+        if (x) {
+          x.remove()
+        }
+        bootbox.confirm({
+          title: "{% raw translate('error', 'eulaTitle', data['lang']) %}",
+          message: "{% raw translate('error', 'eulaMsg', data['lang']) %}<a href='https://www.minecraft.net/en-us/eula' target='_blank'>Minecraft EULA</a>",
+          buttons: {
+            confirm: {
+              label: 'Yes',
+              className: 'btn-info'
+            },
+            cancel: {
+              label: 'No',
+              className: 'btn-secondary'
+            }
+          },
+          callback: function (result) {
+            if (result == true) {
+              eulaAgree(server_id.id)
+            }
+            else {
+              location.reload()
+            }
+          }
+        })
+      });
+    }
+
+    async function eulaAgree(server_id, command) {
+      //< !--this getCookie function is in base.html-- >
+      const token = getCookie("_xsrf");
+
+      let res = await fetch(`/api/v2/servers/${server_id}/action/eula/`, {
+        method: 'POST',
+        headers: {
+          'X-XSRFToken': token
+        },
+      });
+      let responseData = await res.json();
+      if (responseData.status === "ok") {
+        window.location.reload();
+      } else {
+
+        bootbox.alert({
+          title: responseData.error,
+          message: responseData.error_data
+        });
+      }
+    }
+
+
+    function warn(message, link = null, link_msg = null, className = null, bg_color = "#f7970f") {
+      var closeEl = document.createElement('span');
+      var strongEL = document.createElement('strong');
+      var msgEl = document.createElement('div');
+
+      closeEl.innerHTML = '&times;';
+      strongEL.textContent = 'Warning: ';
+      msgEl.append(strongEL, message);
+
+
+      closeEl.style.marginLeft = '15px';
+      closeEl.style.fontWeight = 'bold';
+      closeEl.style.float = 'right';
+      closeEl.style.fontSize = '22px';
+      closeEl.style.lineHeight = '20px';
+      closeEl.style.cursor = 'pointer';
+
+      closeEl.addEventListener('click', function () { this.parentElement.style.display = 'none'; });
+
+      var parentEl = document.createElement('div');
+
+      parentEl.style.padding = '20px';
+      parentEl.style.backgroundColor = bg_color;
+
+      parentEl.appendChild(closeEl);
+      parentEl.appendChild(msgEl);
+      if (link) {
+        let linkEl = document.createElement('a')
+        linkEl.href = link;
+        linkEl.innerHTML = link_msg;
+        //linkEl.style.color = 'white';
+        linkEl.style.textDecoration = 'underline';
+        if (!link.startsWith('/')) {
+          linkEl.target = "_blank";
+        }
+
+        parentEl.appendChild(linkEl);
+      }
+
+      if (className) {
+        parentEl.classList.add(className);
+      }
+
+      document.querySelector('.warnings').appendChild(parentEl);
+    }
+
+    function closeNotification(element) {
+      element.parentElement.classList.add('remove');
+      setTimeout(function () {
+        element.parentElement.remove();
+      }, 500);
+    }
+
+    function notify(message) {
+      console.log(`notify(${message})`);
+      var intId = getRandomInt(0, 100);
+      var toastDiv = document.createElement('div');
+      toastDiv.setAttribute("id", "toast_" + intId);
+      toastDiv.setAttribute("class", "notification toast");
+      toastDiv.setAttribute("role", "alert");
+      toastDiv.setAttribute("aria-lived", "assertive");
+      toastDiv.setAttribute("aria-atomic", "true");
+      toastDiv.setAttribute("data-delay", "3000");
+      toastDiv.setAttribute("data-animation", "true");
+      toastDiv.setAttribute("data-autohide", "false");
+
+      var toastHeaderDiv = document.createElement('div');
+      toastHeaderDiv.setAttribute("class", "toast-header");
+
+      var toastHeaderImg = document.createElement('img');
+      toastHeaderImg.setAttribute("src", "/static/assets/images/logo_small.svg");
+      toastHeaderImg.setAttribute("class", "mr-auto");
+      toastHeaderImg.setAttribute("alt", "logo");
+      toastHeaderDiv.appendChild(toastHeaderImg);
+
+      var toastHeaderTitle = document.createElement('strong');
+      toastHeaderTitle.setAttribute("class", "mr-auto");
+      toastHeaderTitle.innerHTML = " Crafty Controller ";
+      toastHeaderDiv.appendChild(toastHeaderTitle);
+
+      var toastHeaderCloseSpan = document.createElement('span');
+      toastHeaderCloseSpan.setAttribute("class", "ph-bold ph-x");
+      toastHeaderCloseSpan.setAttribute("aria-hidden", "true");
+      toastHeaderCloseSpan.addEventListener('click', function () { closeNotification(this.parentElement) });
+      toastHeaderDiv.appendChild(toastHeaderCloseSpan);
+
+      var toastBodyDiv = document.createElement('div');
+      toastBodyDiv.setAttribute("class", "toast-body");
+      toastBodyDiv.textContent = message;
+
+      toastDiv.appendChild(toastHeaderDiv);
+      toastDiv.appendChild(toastBodyDiv);
+
+      document.querySelector('.notifications').appendChild(toastDiv);
+
+      $('#toast_' + intId).toast('show');
+
+      setTimeout(function () {
+        toastDiv.classList.add('active');
+      }, 200);
+
+      setTimeout(function (element) {
+        closeNotification(element.parentElement);
+      }, 7500, toastHeaderCloseSpan);
+
+      `
+      <div class="notification">
+        <p>Hello, World! This text should overflow</p>
+        <span>&times;</span>
+      </div>
+      `
+    }
+    webSocket.on('notification', notify);
+
+    document.addEventListener('alpine:init', () => {
+      console.log('%c[Crafty Controller] %cAlpine.js pre-initialization!', 'font-weight: 900; color: #800080;', 'color: #eee;');
+    });
+    document.addEventListener('alpine:initialized', () => {
+      console.log('%c[Crafty Controller] %cAlpine.js initialized!', 'font-weight: 900; color: #800080;', 'color: #eee;');
+    });
+
+    $(document).ready(function () {
+      console.log('%c[Crafty Controller] %cReady for JS!', 'font-weight: 900; color: #800080;', 'font-weight: 900; color: #eee;');
+      if ($(document.documentElement).data("username") === "anti-lockout-user") {
+        const logoutUrl = ingressPath + '/logout';
+        warn(
+          '⚠️You are in a recovery account. Access is limited!',
+          link = logoutUrl,
+          link_msg = "Click here to log out after you change your password. ⚠️",
+          className = 'anti-lockout',
+          bg_color = '#6887dc'
+        )
+      }
+    });
+    $(document).ready(() => {
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/static/assets/js/shared/service-worker.js', { scope: '/' })
+          .then(function (registration) {
+            console.log('Service Worker Registered');
+          });
+      }
+      if (webSocket) {
+        webSocket.on('zip_status', function (data) {
+          if (data.complete) {
+            try {
+              const cur_dir = $("#table-nav").attr("data-cur-path");
+              removeProgressItem(data.id);
+              getTreeView(cur_dir);
+            } catch {
+              $('.bootbox-close-button').click();
+            }
+          } else {
+            updateProgressBar(data.percent, data.id ? "server_upload" : "", 1, data.id);
+          }
+        });
+      }
+    });
+  </script>
+
+  {% block js %}
+  <!-- Custom js for base.html page partial pages -->
+  <!-- End custom js for base.html page -->
+  {% end %}
+
+</body>
+
+</html>

@@ -1,0 +1,148 @@
+{% extends ../base.html %}
+
+{% block meta %}
+{% end %}
+
+{% block title %}Crafty Controller - {{ translate('serverDetails', 'serverDetails', data['lang']) }}{% end %}
+
+{% block content %}
+
+<div class="content-wrapper">
+
+  <!-- Page Title Header Starts-->
+  <div class="row page-title-header">
+    <div class="col-12">
+      <div class="page-header">
+        <h4 class="page-title">
+          {{ translate('serverDetails', 'serverDetails', data['lang']) }} - {{
+          data['server_stats']['server_id']['server_name'] }}
+          <br />
+          <small>UUID: {{ data['server_stats']['server_id']['server_id'] }}</small>
+        </h4>
+      </div>
+    </div>
+
+  </div>
+  <!-- Page Title Header Ends-->
+
+  {% include "parts/details_stats.html %}
+
+  <div class="row">
+
+    <div class="col-sm-12 grid-margin">
+      <div class="card">
+        <div class="card-body  pt-0">
+          <span class="d-none d-sm-block">
+            {% include "parts/server_controls_list.html %}
+          </span>
+          <span class="d-block d-sm-none">
+            {% include "parts/m_server_controls_list.html %}
+          </span>
+
+          <div class="row">
+            {% include "parts/server_players.html %}
+          </div>
+
+          <hr />
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+
+</div>
+<!-- content-wrapper ends -->
+
+{% end %}
+
+{% block js %}
+<script>
+  const serverId = new URLSearchParams(document.location.search).get('id')
+
+  //used to get cookies from browser - this is part of tornados xsrf protection - it's for extra security
+  function getCookie(name) {
+    var r = document.cookie.match("\\b" + name + "=([^;]*)\\b");
+    return r ? r[1] : undefined;
+  }
+
+  function ban_kick(action, player) {
+    send_command_to_server(`${action} ${player}`);
+    // Optimistically reflect a ban in the banned list for instant feedback;
+    // the next page load reconciles against the server's banned-players.json.
+    if (action === 'ban') {
+      add_banned_row(player, '');
+    }
+  }
+
+  // Unban a player and optimistically drop them from the banned list so the UI
+  // updates immediately instead of waiting for a page refresh. Hytale and
+  // Minecraft spell the command differently (unban vs pardon).
+  function unban_player(player) {
+    const command = SERVER_TYPE === "hytale" ? "unban" : "pardon";
+    send_command_to_server(`${command} ${player}`);
+    remove_banned_rows(player);
+  }
+
+  // Remove every banned-table row (desktop + mobile) matching a player name.
+  function remove_banned_rows(player) {
+    $('#banned-body tr, #banned-body-mobile tr').filter(function () {
+      return $(this).attr('data-player') === player;
+    }).remove();
+  }
+
+  // Append an optimistic banned-table row for a player. Markup mirrors the
+  // server-rendered rows in server_players.html; text is set via .text()/text
+  // nodes so player names and reasons can't break out of the markup.
+  function add_banned_row(player, reason) {
+    remove_banned_rows(player);
+    const reasonText = reason || 'None';
+    const bannedOn = moment().format('YYYY/MM/DD HH:mm:ss');
+    const unbanButton = () => $('<button>', {
+      type: 'button', class: 'btn btn-danger', text: 'Unban'
+    }).on('click', () => unban_player(player));
+
+    $('#banned-body').append(
+      $('<tr>', { class: 'playerItem--', 'data-player': player }).append(
+        $('<td>').append($('<strong>').text(' ' + player)),
+        $('<td>').text('Banned on ' + bannedOn),
+        $('<td>').append(
+          document.createTextNode('Banned by :  '),
+          $('<br>'),
+          document.createTextNode('Reason : ' + reasonText)
+        ),
+        $('<td>', { class: 'buttons' }).append(unbanButton())
+      )
+    );
+
+    $('#banned-body-mobile').append(
+      $('<tr>', { class: 'playerItem--', 'data-player': player }).append(
+        $('<td>').append($('<strong>').text(' ' + player)),
+        $('<td>', { class: 'buttons' }).append(unbanButton())
+      )
+    );
+  }
+
+  async function send_command_to_server(command) {
+    console.log(command)
+    const token = getCookie("_xsrf")
+    console.log('sending command: ' + command)
+
+    let res = await fetch(`/api/v2/servers/${serverId}/stdin`, {
+      method: 'POST',
+      headers: {
+        'X-XSRFToken': token
+      },
+      body: command,
+    });
+
+    let responseData = await res.text();
+    console.log("got response:");
+    console.log(responseData);
+  }
+
+
+</script>
+
+{% end %}

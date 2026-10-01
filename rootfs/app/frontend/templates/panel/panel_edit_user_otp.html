@@ -1,0 +1,306 @@
+{% extends ../base.html %}
+
+{% block meta %}
+{% end %}
+
+{% block title %}Crafty Controller - {{ translate('userConfig', 'editTOTP', data['lang']) }}{% end %}
+
+{% block content %}
+<link href="/static/assets/css/partial/crafty-mfa_page.css" rel="stylesheet">
+<div class="content-wrapper">
+
+    <!-- Page Title Header Starts-->
+    <div class="row page-title-header">
+        <div class="col-12">
+            <div class="page-header">
+                <h4 class="page-title">
+                    {{ translate('userConfig', 'editTOTP', data['lang']) }} - {{ data['user']['user_id'] }}
+                    <br />
+                    <small>UID: {{ data['user']['user_id'] }}</small>
+                </h4>
+            </div>
+        </div>
+
+    </div>
+    <!-- Page Title Header Ends-->
+
+    <div class="row">
+
+        <div class="col-sm-12 grid-margin">
+            <div class="card">
+                <div class="card-body  pt-0">
+                    <ul class="nav nav-tabs col-md-12 tab-simple-styled ">
+                        <li class="nav-item">
+                            <a class="nav-link" href="/panel/edit_user?id={{ data['user']['user_id'] }}&subpage=config"
+                                role="tab" aria-selected="false">
+                                <i class="ph-fill ph-gear"></i>{{ translate('userConfig', 'config', data['lang']) }}</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/panel/edit_user_apikeys?id={{ data['user']['user_id'] }}"
+                                role="tab" aria-selected="false">
+                                <i class="ph-fill ph-key"></i>{{ translate('apiKeys', 'apiKeys', data['lang']) }}</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="/panel/edit_user_otp?id={{ data['user']['user_id'] }}"
+                                role="tab" aria-selected="true">
+                                <i class="ph-fill ph-shield"></i>{{ translate('userConfig', 'totpHeader',
+                                data['lang']) }}</a>
+                        </li>
+                        {% if data.get('passkey_enabled', False) %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="/panel/edit_user_passkey?id={{ data['user']['user_id'] }}"
+                                role="tab" aria-selected="false">
+                                <i class="ph-fill ph-fingerprint-simple"></i>{{ translate('userConfig', 'passkeyHeader',
+                                data['lang']) }}</a>
+                        </li>
+                        {% end %}
+                    </ul>
+
+                    <div class="row">
+                        <div class="col-md-12 col-sm-12">
+                            <div class="card">
+                                <div class="card-header header-sm d-flex justify-content-between align-items-center">
+                                    <h4 class="card-title"><i class="ph-fill ph-key"></i>&nbsp;{{ translate('otp',
+                                        'otpTitle',
+                                        data['lang']) }}</h4>
+                                    <div><button class="btn btn-primary" id="renewCodes"><i
+                                                class="ph-fill ph-plus-circle"></i>
+                                            &nbsp; {{
+                                            translate('otp', 'renewRecovery', data['lang']) }}</button>&nbsp;<button
+                                            class="btn btn-primary" id="createButton" data-backup-codes="{{
+                                        translate('otp', 'backupCodes', data['lang']) }}" data-backup-codes-max="{{
+                                            translate('otp', 'backupCodesMax', data['lang']) }}" data-copy-codes="{{
+                                                translate('otp', 'copyBackupCodes', data['lang']) }}"
+                                            data-new-name="{{translate('otp', 'newName', data['lang'])}}"
+                                            data-verify-title="{{translate('otp', 'verifyTitle', data['lang'])}}"><i
+                                                class="ph-fill ph-plus-circle"></i>
+                                            &nbsp; {{
+                                            translate('otp', 'newOTP', data['lang']) }}</button></div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="form-group">
+                                        <div class="table-responsive">
+                                            <table id="totp-table" class="table table-hover">
+                                                <thead>
+                                                    <tr class="rounded">
+                                                        <th>{{ translate('otp', 'name', data['lang']) }}</th>
+                                                        <th>{{ translate('otp', 'id', data['lang']) }}</th>
+                                                        <th>{{ translate('otp', 'config', data['lang']) }}</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for otp in data['totp'] %}
+                                                    <tr id="{{otp['id']}}">
+                                                        <td>
+                                                            <span>
+                                                                {{ otp['name'] }}
+                                                            </span>
+                                                        </td>
+                                                        <td>{{ otp['id'] }}</td>
+                                                        <td><button class="btn btn-danger delete-totp"
+                                                                data-totp-id="{{ otp['id'] }}"
+                                                                data-totp-name="{{ otp['name'] }}"
+                                                                data-delete-warn="{{translate('otp', 'deleteConfirm', data['lang'])}}"
+                                                                data-yes="{{translate('otp', 'yes',
+                                                                data['lang'])}}"
+                                                                data-no="{{ translate('otp', 'no', data['lang'])}}">{{translate('otp',
+                                                                'delete', data['lang'])}}</button>
+                                                        </td>
+                                                    </tr>
+                                                    {% end %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+<div id="codes-hidden" style="display: none;"></div>
+<!-- content-wrapper ends -->
+
+{% end %}
+
+{% block js %}
+<script>
+    // Function to generate the TOTP QR code URL
+    function generateTotpQrCode(secret, user, issuer) {
+        const otpAuthUrl = `otpauth://totp/${encodeURIComponent(issuer)}:${encodeURIComponent(user)}?secret=${secret}&issuer=${encodeURIComponent(issuer)}`;
+
+        $('#qrcode').empty(); // Clear any existing QR code
+        new QRCode(document.getElementById('qrcode'), {
+            text: otpAuthUrl,
+            width: 300, // Adjust size
+            height: 300,
+            colorDark: "#000000",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.L
+        });
+    }
+
+    // Function to create the modal response content
+    function createResponseDiv(data) {
+
+        const contentHTML = `
+            <div class="bootbox-custom-layout row">
+                <div id="left-panel" class="left-panel col-md-12 col-12 d-flex flex-column align-items-center justify-content-center">
+                    <div class="d-flex align-items-center mt-3">
+                        <label for="name-input" class="d-block">${$("#createButton").data("new-name")}<input type="text" id="name-input" class="form-control me-2 d-block" placeholder="${$("#createButton").data("new-name")}"></label>
+                        
+                    </div>
+                    </br>
+                    <div id="qrcode" class="mb-3"></div>
+                        <ul class="list-group">
+                            <li class="list-group-item" id="secret">${data["otp"]["totp_secret"]}</li>
+                        </ul>
+                    
+                    <div class="d-flex align-items-center mt-3">
+                        <input type="text" id="verify-input" data-otp-id="${data["otp"]["id"]}" class="form-control me-2" placeholder="Enter code">
+                        <button id="verify" class="btn btn-primary" data-verified="false">Verify</button><span id="verify-status"></span>
+                    </div>
+                </div>
+                <div id="backup-codes" class="right-panel col-md-6 col-12 d-none">
+                </div>
+            </div>
+        `;
+        let responseDIV = document.createElement("div");
+        responseDIV.setAttribute("id", "resContainer");
+        $(responseDIV).html(contentHTML);
+
+        return responseDIV;
+    }
+
+    const userId = new URLSearchParams(document.location.search).get('id');
+    const token = getCookie("_xsrf");
+    // Create TOTP on button click
+    $("#createButton").click(async function () {
+        let res = await fetch(`/api/v2/users/${userId}/totp/`, {
+            method: 'POST',
+            headers: {
+                'X-XSRFToken': token
+            },
+        });
+        let responseData = await res.json();
+        if (responseData.status === "ok") {
+            let resdiv = createResponseDiv(responseData.data);
+            bootbox.dialog({
+                title: $("#createButton").data("verify-title"),
+                size: "large",
+                closeButton: false,
+                message: resdiv, // Display the generated QR code
+                buttons: {
+                    close: {
+                        label: 'Close',
+                        className: 'bb-close-button',
+                        callback: function () {
+                            if ($("#verify-input").data("verified") === "True") {
+                                location.reload();
+                            }
+                        }
+                    }
+                },
+            });
+
+            // Generate the QR Code with the TOTP secret, user name, and issuer
+            generateTotpQrCode(responseData.data["otp"]["totp_secret"], responseData.data["otp"]["username"], "CraftyController");
+            $("#verify").click(async function () {
+                let totp_id = $("#verify-input").data("otp-id");
+                let res = await fetch(`/api/v2/users/${userId}/totp/${totp_id}/verify/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-XSRFToken': token
+                    },
+                    body: JSON.stringify({ "name": $("#name-input").val(), "totp": Number($("#verify-input").val()) }),
+                });
+                let responseData = await res.json();
+                let data = responseData.data
+                if (responseData.status === "ok") {
+                    let backupcodes = createBackupCodesDiv(data)
+                    $("#left-panel").removeClass("col-md-12").addClass("col-md-6");
+                    $("#backup-codes").removeClass("d-none");
+                    $("#backup-codes").html(backupcodes);
+                    $("#verify-status").html(`<i class="ph-bold ph-check"></i>`);
+                    $(".bb-close-button").removeAttr("disabled");
+                    $("#verify-input").removeClass("wrong");
+                    $("#verify-input").addClass("verified");
+                    $("#verify-input").attr("disabled")
+                    $("#verify-input").data("verified", "True");
+                    $("#verify").remove();
+                    registerCopyFunction();
+                    document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;"
+                    document.cookie = "_xsrf=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;"
+                } else {
+                    if (responseData.error === "INVALID_JSON_SCHEMA") {
+                        bootbox.hideAll()
+                        setTimeout(
+                            bootbox.alert(responseData.error_data),
+                            2000)
+                    }
+                    $("#verify-status").html(`<i class="ph-fill ph-warning"></i>`);
+                    $("#verify-input").addClass("wrong");
+                }
+            });
+        } else {
+            bootbox.alert({
+                title: responseData.error,
+                message: responseData.error_data
+            });
+        }
+    });
+
+    $('.delete-totp').click(function () {
+        let keyId = $(this).data("totp-id");
+        let yes = $(this).data("yes");
+        let no = $(this).data("no");
+        let warn = $(this).data("delete-warn")
+        let name = $(this).data("totp-name")
+        return bootbox.confirm({
+            message: `${warn}<br><br>${name}`,
+            buttons: {
+                confirm: {
+                    label: yes,
+                    className: 'btn-danger'
+                },
+                cancel: {
+                    label: no,
+                    className: 'btn-secondary'
+                }
+            },
+            callback: function (result) {
+                if (result) {
+                    deleteTOTP(keyId)
+                }
+            }
+        });
+    });
+
+    // Delete TOTP on button click
+    async function deleteTOTP(keyId) {
+        let res = await fetch(`/api/v2/users/${userId}/totp/${keyId}/`, {
+            method: 'DELETE',
+            headers: {
+                'X-XSRFToken': token
+            },
+        });
+        let responseData = await res.json();
+        if (responseData.status === "ok") {
+            $(`#${keyId}`).remove();
+        } else {
+            bootbox.alert({
+                title: responseData.error,
+                message: responseData.error_data
+            });
+        }
+    };
+</script>
+<script src="/static/assets/vendors/js/qrcode.min.js"></script>
+<script src="/static/assets/js/shared/backupCodes.js"></script>
+
+{% end %}
